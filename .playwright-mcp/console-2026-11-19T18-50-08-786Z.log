@@ -1,5 +1,0 @@
-[    5368ms] [WARNING] 2026-11-19T18:50:14.154Z[IMLib][WARN]: L-imsdk_ver-O | {"commitId":"b83bc888ca931796c98260ce0b360e65750a43b5","version":"26.2.1","isNexconn":true} | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
-[    5369ms] [WARNING] 2026-11-19T18:50:14.155Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
-[    5370ms] [WARNING] 2026-11-19T18:50:14.155Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
-[    6775ms] [WARNING] 2026-11-19T18:50:15.561Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
-[    6778ms] [WARNING] 2026-11-19T18:50:15.563Z[IMLib][WARN]: A-subscribe_user_status-R | {"code":34307,"msg":"fail: 34307"} | 24 @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
