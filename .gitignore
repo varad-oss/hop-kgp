@@ -1,0 +1,11 @@
+node_modules
+.next
+.vercel
+.superpowers
+.DS_Store
+web/.env*
+!web/.env.example
+research_notes/
+reports/
+.claude/
+NEXCONN_CLAUDE_CODE_PROMPT.md
