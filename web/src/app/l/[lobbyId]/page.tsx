@@ -208,6 +208,10 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
           setProposeOpen(false);
           refresh();
         }}
+        onProfileRequired={() => {
+          setProposeOpen(false);
+          setProfileFor(() => () => setProposeOpen(true));
+        }}
       />
       <ProfileModal
         open={!!profileFor}

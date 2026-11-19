@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, errorText } from '@/client/api';
+import { api, ApiError, errorText } from '@/client/api';
 import { DESTINATIONS, FARE_PRESETS, MEETING_POINTS, VEHICLES, type DestKey, type VehicleKey } from '@/domain/catalog';
 import { formatINR, splitFare } from '@/domain/fare';
 import { Button, Chip, ErrorNote, Field, inputClass, Sheet } from './ui';
 
-export function ProposeSheet({ open, onClose, lobbyId, destination, date, onDone }: { open: boolean; onClose: () => void; lobbyId: string; destination: DestKey; date: string; onDone: () => void }) {
+export function ProposeSheet({ open, onClose, lobbyId, destination, date, onDone, onProfileRequired }: { open: boolean; onClose: () => void; lobbyId: string; destination: DestKey; date: string; onDone: () => void; onProfileRequired?: () => void }) {
   const [time, setTime] = useState('06:30');
   const [point, setPoint] = useState(MEETING_POINTS[0]);
   const [vehicle, setVehicle] = useState<VehicleKey>(destination === 'KGP' ? 'toto' : 'sedan');
@@ -31,7 +31,8 @@ export function ProposeSheet({ open, onClose, lobbyId, destination, date, onDone
       await api.send('POST', '/api/proposals', { lobbyId, departAt, meetingPoint: point.trim(), vehicle, totalFare: total, seats });
       onDone();
     } catch (e) {
-      setError(errorText(e));
+      if (e instanceof ApiError && e.status === 428 && onProfileRequired) onProfileRequired();
+      else setError(errorText(e));
     }
     setBusy(false);
   }
