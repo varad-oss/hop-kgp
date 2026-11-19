@@ -28,3 +28,7 @@ export function formatTripDate(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
+
+export function lobbyTitle(destinationLabel: string, direction: 'out' | 'back', date: string): string {
+  return `${destinationLabel} · ${formatTripDate(date)}${direction === 'back' ? ' → KGP' : ''}`;
+}
