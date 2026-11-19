@@ -86,3 +86,23 @@ describe('getPod', () => {
     expect(r.status).toBe('archived');
   });
 });
+
+import { saveFeedback } from '@/server/pods';
+
+describe('saveFeedback', () => {
+  test('a pod member can leave feedback; a second submission replaces the first', async () => {
+    const w = await makeWorld(3);
+    const pod = await lockWith(w, [0, 1]);
+    await saveFeedback(w.db, w.users[0], { podId: pod, rating: 4, note: ' fast ' });
+    await saveFeedback(w.db, w.users[0], { podId: pod, rating: 5, note: 'great' });
+    const rows = await w.db.query<{ rating: number; note: string }>('select rating, note from hop.feedback');
+    expect(rows).toEqual([{ rating: 5, note: 'great' }]);
+  });
+  test('non-members get 404; bad ratings and long notes get 400', async () => {
+    const w = await makeWorld(3);
+    const pod = await lockWith(w, [0, 1]);
+    await expect(saveFeedback(w.db, w.users[2], { podId: pod, rating: 3, note: '' })).rejects.toMatchObject({ status: 404 });
+    await expect(saveFeedback(w.db, w.users[0], { podId: pod, rating: 6, note: '' })).rejects.toMatchObject({ status: 400 });
+    await expect(saveFeedback(w.db, w.users[0], { podId: pod, rating: 3, note: 'x'.repeat(281) })).rejects.toMatchObject({ status: 400 });
+  });
+});

@@ -152,3 +152,13 @@ export async function getPod(
   }
   return { status, channelId: pod.channel_id, ticket: await buildTicket(db, podId) };
 }
+
+export async function saveFeedback(db: Db, user: UserRow, f: { podId: string; rating: number; note: string }): Promise<void> {
+  const note = (f.note ?? '').trim();
+  if (!Number.isInteger(f.rating) || f.rating < 1 || f.rating > 5 || note.length > 280) throw new HttpError(400, 'bad_request');
+  if (!/^[0-9a-f-]{36}$/i.test(f.podId)) throw new HttpError(404, 'not_found');
+  const member = await db.query('select 1 from hop.pod_members where pod_id = $1 and user_id = $2', [f.podId, user.id]);
+  if (!member[0]) throw new HttpError(404, 'not_found');
+  await db.query('delete from hop.feedback where pod_id = $1 and user_id = $2', [f.podId, user.id]);
+  await db.query('insert into hop.feedback(user_id, pod_id, rating, note) values ($1,$2,$3,$4)', [user.id, f.podId, f.rating, note || null]);
+}

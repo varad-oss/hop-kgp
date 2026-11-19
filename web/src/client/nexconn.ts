@@ -1,9 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CARD_INTENT, CARD_PROPOSAL, CARD_TICKET } from '@/domain/cards';
-import { emitMessage, emitMetadata, getConnStatus, onChannelMessage, onMetadata, setConnStatus, type ChatMessage } from './store';
+import { emitMessage, emitMetadata, getConnStatus, onChannelMessage, onMetadata, setConnStatus, setOnline, type ChatMessage } from './store';
 
-export { useConnection, onMetadata } from './store';
+export { useConnection, onMetadata, usePresence } from './store';
 export type { ChatMessage } from './store';
 
 type Sdk = typeof import('@nexconn/chat');
@@ -69,6 +69,14 @@ export function connectNexconn(): Promise<void> {
         },
         onMessageMetadataUpdated: ({ messageId, channelIdentifier, metadata }) =>
           emitMetadata((channelIdentifier as any).channelId, messageId, metadata),
+      }),
+    );
+    s.NCEngine.addUserHandler(
+      'hop-user',
+      new s.UserHandler({
+        onSubscriptionChanged: ({ events }) => {
+          for (const e of events) setOnline(e.userId, (e.details ?? []).some((d) => d.eventValue === 0));
+        },
       }),
     );
     const timer = setTimeout(() => {
@@ -162,4 +170,44 @@ export function useChannelMessages(channelId: string | null) {
   );
 
   return { messages, status, sendText };
+}
+
+/** Subscribe to online status for these users (best effort: presence may be off on the plan). */
+export async function subscribePresence(userIds: string[]): Promise<void> {
+  try {
+    await connectNexconn();
+    const s = sdk!;
+    const ids = userIds.slice(0, 200);
+    if (!ids.length) return;
+    await s.NCEngine.userModule.subscribeEvent({ userIds: ids, subscribeType: s.SubscribeType.ONLINE_STATUS });
+  } catch {
+    /* presence is optional */
+  }
+}
+
+/** Tell the sender these messages have been read (best effort). */
+export async function markRead(channelId: string, uids: string[]): Promise<void> {
+  try {
+    if (!sdk || !uids.length) return;
+    await new sdk.GroupChannel(channelId).sendReadReceiptResponse(uids);
+  } catch {
+    /* receipts are optional */
+  }
+}
+
+/** How many people have read one of my messages, or null when receipts are unavailable. */
+export async function readByCount(channelId: string, messageId: string): Promise<number | null> {
+  try {
+    if (!sdk) return null;
+    const q = sdk.BaseChannel.createMessagesReadReceiptUsersQuery({
+      channelIdentifier: new sdk.GroupChannelIdentifier(channelId),
+      messageId,
+      pageSize: 50,
+      status: sdk.MessageReadReceiptStatus.RESPONDED,
+    });
+    const r = await q.loadNextPage();
+    return r.isOk ? (r.data?.data?.length ?? 0) : null;
+  } catch {
+    return null;
+  }
 }

@@ -51,3 +51,24 @@ export const onMetadata = (channelId: string, cb: MetaCb) => sub(metaSubs, chann
 export const emitMessage = (channelId: string, m: ChatMessage) => msgSubs.get(channelId)?.forEach((f) => f(m));
 export const emitMetadata = (channelId: string, id: string, meta: Record<string, string>) =>
   metaSubs.get(channelId)?.forEach((f) => f(id, meta));
+
+// Presence: ids of subscribed users currently online. Unknown until the SDK reports.
+let online = new Set<string>();
+const presenceSubs = new Set<() => void>();
+export function setOnline(id: string, isOnline: boolean) {
+  const next = new Set(online);
+  if (isOnline) next.add(id);
+  else next.delete(id);
+  online = next;
+  presenceSubs.forEach((f) => f());
+}
+export function usePresence(): Set<string> {
+  return useSyncExternalStore(
+    (cb) => {
+      presenceSubs.add(cb);
+      return () => void presenceSubs.delete(cb);
+    },
+    () => online,
+    () => new Set<string>(),
+  );
+}
