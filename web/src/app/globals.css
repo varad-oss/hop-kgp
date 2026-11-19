@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
+/* Hop — station-signage palette: platform navy, signal yellow, go green. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #e4eaf3;
+  --ink: #14213d;
+  --muted: #4a5a77;
+  --line: #cfd8e6;
+  --signal: #f2b90f;
+  --on-signal: #14213d;
+  --go: #17744c;
+  --on-go: #ffffff;
+  --stop: #b3261e;
+  --ticket: #14213d;
+  --on-ticket: #f4f7fc;
+  --ticket-line: #3b4d75;
+  --focus: #1f5fd1;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0b1220;
+    --surface: #131d33;
+    --surface-2: #1b2842;
+    --ink: #e9eef8;
+    --muted: #9fadc7;
+    --line: #26354f;
+    --go: #4cc38a;
+    --on-go: #06251a;
+    --stop: #ff8a80;
+    --ticket: #1d3160;
+    --on-ticket: #f4f7fc;
+    --ticket-line: #4a63a0;
+    --focus: #8ab4ff;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-signal: var(--signal);
+  --color-on-signal: var(--on-signal);
+  --color-go: var(--go);
+  --color-on-go: var(--on-go);
+  --color-stop: var(--stop);
+  --color-ticket: var(--ticket);
+  --color-on-ticket: var(--on-ticket);
+  --color-ticket-line: var(--ticket-line);
+  --font-sans: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-display), "Arial Narrow", sans-serif;
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+}
+
+.font-display {
+  font-family: var(--font-display), "Arial Narrow", sans-serif;
+  letter-spacing: 0.005em;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.96); }
+  60% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop 220ms ease-out; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+/* Perforation between a ticket's stub and body */
+.perf {
+  background-image: linear-gradient(to bottom, var(--ticket-line) 55%, transparent 0);
+  background-size: 2px 10px;
+  background-repeat: repeat-y;
 }
