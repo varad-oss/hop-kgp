@@ -2,3 +2,23 @@
 [    3826ms] [WARNING] 2026-11-19T18:48:23.815Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
 [    3826ms] [WARNING] 2026-11-19T18:48:23.815Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
 [    5366ms] [WARNING] 2026-11-19T18:48:25.355Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4166060ms] [WARNING] 2026-11-19T19:57:46.049Z[IMLib][WARN]: L-imsdk_ver-O | {"commitId":"b83bc888ca931796c98260ce0b360e65750a43b5","version":"26.2.1","isNexconn":true} | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4166061ms] [WARNING] 2026-11-19T19:57:46.049Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4166061ms] [WARNING] 2026-11-19T19:57:46.049Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4167138ms] [WARNING] 2026-11-19T19:57:47.127Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4170439ms] [WARNING] 2026-11-19T19:57:50.427Z[IMLib][WARN]: L-imsdk_ver-O | {"commitId":"b83bc888ca931796c98260ce0b360e65750a43b5","version":"26.2.1","isNexconn":true} | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4170440ms] [WARNING] 2026-11-19T19:57:50.428Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4170440ms] [WARNING] 2026-11-19T19:57:50.428Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4171033ms] [WARNING] 2026-11-19T19:57:51.022Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4212879ms] [ERROR] Failed to load resource: the server responded with a status of 428 () @ https://hop-kgp.vercel.app/api/proposals:1
+[ 4256504ms] [WARNING] 2026-11-19T19:59:16.492Z[IMLib][WARN]: L-imsdk_ver-O | {"commitId":"b83bc888ca931796c98260ce0b360e65750a43b5","version":"26.2.1","isNexconn":true} | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4256504ms] [WARNING] 2026-11-19T19:59:16.493Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4256504ms] [WARNING] 2026-11-19T19:59:16.493Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4256528ms] [ERROR] Failed to load resource: the server responded with a status of 428 () @ https://hop-kgp.vercel.app/api/proposals:1
+[ 4257331ms] [WARNING] 2026-11-19T19:59:17.319Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4273066ms] [WARNING] 2026-11-19T19:59:33.054Z[IMLib][WARN]: A-subscribe_user_status-R | {"code":34307,"msg":"fail: 34307"} | 48 @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4445211ms] [WARNING] 2026-11-19T20:02:25.199Z[IMLib][WARN]: A-subscribe_user_status-R | {"code":34307,"msg":"fail: 34307"} | 135 @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4564781ms] [WARNING] 2026-11-19T20:04:24.770Z[IMLib][WARN]: L-imsdk_ver-O | {"commitId":"b83bc888ca931796c98260ce0b360e65750a43b5","version":"26.2.1","isNexconn":true} | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4564782ms] [WARNING] 2026-11-19T20:04:24.771Z[IMLib][WARN]: L-connect-S | status: 1 | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4564782ms] [WARNING] 2026-11-19T20:04:24.771Z[IMLib][WARN]: A-connect-S | status: 1, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1
+[ 4565683ms] [WARNING] 2026-11-19T20:04:25.671Z[IMLib][WARN]: A-connect-S | status: 0, code: undefined | undefined @ https://hop-kgp.vercel.app/_next/static/immutable/chunks/0t29x53ohiytw.js:1

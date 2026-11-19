@@ -14,11 +14,14 @@
 | # | Check | Result |
 |---|---|---|
 | 2 | Server metadata update reaches other client | PASS |
-| 4 | History visible after reload | PASS (pre-join history for brand-new members still to verify) |
+| 4 | History for a brand-new member | FAIL: new members do not see earlier messages even after the Console pre-join history switch. Mitigated in code: lobby summary returns plans + intents from the DB and the UI merges them. |
 | 1 | Plan tier (Pro vs Starter), presence + pre-messaging webhook | PENDING — user to confirm Chat Pro in Console, then set webhook URL `<site>/api/webhooks/nexconn` with `group_channel:pre_messaging` |
-| 3 | Group read receipts ("Seen by") | PENDING — needs two real members in one pod |
+| 3 | Group read receipts ("Seen by") | PASS (Bob's message -> "Seen by 1") |
 | 5 | Nexconn WebSocket on KGP WiFi | PENDING — user |
-| 6 | Real @kgpian Google sign-in (iOS Safari + Android) | PENDING — user |
+| 6 | Real @kgpian Google sign-in | PASS on user's browser after fixing Supabase Google client id/secret (iOS/Android still to confirm) |
+
+## Three-user journey verified live (paired guest sessions)
+Alice posts trip -> proposes (hit + fixed a dead end: profile required) -> Carol joins late and sees plan + intents (after DB-backed fix) -> Carol votes, Alice's page updates to 2 in live -> Alice locks -> pod ticket ₹1,400 -> Bob takes a free seat after lock -> ticket re-splits to ₹934 on both pages with a "joined" banner -> chat + "Seen by 1".
 
 ## Next
 - Two-real-user pod test (read receipts, join-free-seat, leave re-split) using paired demo sessions.
