@@ -1,0 +1,78 @@
+import { randomUUID } from 'node:crypto';
+import type { Db } from './db';
+import { HttpError } from './http';
+import { nexconnUserId } from './ids';
+import { normalizeIndianMobile } from '@/domain/phone';
+
+export type UserRow = {
+  id: string;
+  auth_id: string;
+  email: string | null;
+  name: string;
+  hall: string | null;
+  phone: string | null;
+  is_demo: boolean;
+  demo_group: string | null;
+  nexconn_id: string;
+};
+
+const KGPIAN = '@kgpian.iitkgp.ac.in';
+
+export function isKgpianEmail(email: string | undefined | null): boolean {
+  return !!email && email.toLowerCase().endsWith(KGPIAN) && email.length > KGPIAN.length;
+}
+
+export function safeNext(next: string | null | undefined): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/home';
+  return next;
+}
+
+export const demoScope = (u: Pick<UserRow, 'id' | 'demo_group'>): string => u.demo_group ?? u.id;
+
+export async function ensureUser(
+  db: Db,
+  a: { authId: string; email: string | null; name: string; isDemo: boolean },
+): Promise<UserRow> {
+  const id = randomUUID();
+  await db.query(
+    `insert into hop.users(id, auth_id, email, name, is_demo, nexconn_id) values ($1,$2,$3,$4,$5,$6)
+     on conflict (auth_id) do nothing`,
+    [id, a.authId, a.email, a.name.slice(0, 64), a.isDemo, nexconnUserId(id, a.isDemo)],
+  );
+  const rows = await db.query<UserRow>('select * from hop.users where auth_id = $1', [a.authId]);
+  return rows[0];
+}
+
+export async function updateProfile(db: Db, userId: string, p: { hall: string; phone: string }): Promise<UserRow> {
+  const hall = p.hall.trim();
+  if (hall.length < 1 || hall.length > 40) throw new HttpError(400, 'bad_hall');
+  const phone = normalizeIndianMobile(p.phone);
+  if (!phone) throw new HttpError(400, 'bad_phone');
+  const rows = await db.query<UserRow>('update hop.users set hall = $2, phone = $3 where id = $1 returning *', [userId, hall, phone]);
+  if (!rows[0]) throw new HttpError(404, 'not_found');
+  return rows[0];
+}
+
+export type SessionUser = { id: string; email: string | undefined; name: string; isAnonymous: boolean };
+
+export async function handleCallback(d: {
+  db: Db;
+  code: string | null;
+  next: string | null;
+  exchange: (code: string) => Promise<SessionUser>;
+  signOut: () => Promise<void>;
+}): Promise<string> {
+  if (!d.code) return '/?error=auth';
+  let s: SessionUser;
+  try {
+    s = await d.exchange(d.code);
+  } catch {
+    return '/?error=auth';
+  }
+  if (!s.isAnonymous && !isKgpianEmail(s.email)) {
+    await d.signOut();
+    return '/?notkgp=1';
+  }
+  await ensureUser(d.db, { authId: s.id, email: s.email ?? null, name: s.name, isDemo: s.isAnonymous });
+  return safeNext(d.next);
+}
