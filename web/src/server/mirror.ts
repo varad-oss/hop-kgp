@@ -1,6 +1,6 @@
 import type { ProposalMeta } from '@/domain/cards';
 import type { Db } from './db';
-import { botId } from './lobbies';
+import { botId } from './bot';
 import type { NexconnApi } from './nexconn/api';
 
 /** Reads the live state of a proposal from Postgres (the source of truth). */

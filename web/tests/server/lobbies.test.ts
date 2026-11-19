@@ -132,3 +132,28 @@ test('listMyTrips returns one row per lobby even when several proposals are lock
   }
   expect(await listMyTrips(db, riya)).toHaveLength(1);
 });
+
+import { makeWorld } from '../helpers/world';
+import { lockWith } from '../helpers/world';
+
+describe('lobbySummary carries plans and intents from the database', () => {
+  test('returns every open or locked proposal with live meta, and every intent as a card', async () => {
+    const w = await makeWorld(3);
+    for (const i of [0, 1]) await w.db.query('insert into hop.votes(proposal_id, user_id) values ($1,$2)', [w.proposalId, w.users[i].id]);
+    const s = await lobbySummary(w.db, w.lobbyId, w.users[2]);
+    expect(s.proposals).toHaveLength(1);
+    expect(s.proposals[0].proposal).toMatchObject({ proposalId: w.proposalId, creatorName: 'user0', meetingPoint: 'Main Building gate', vehicle: 'sedan', totalFare: 2800, seats: 4, isDemo: false });
+    expect(s.proposals[0].proposal.departAt).toBe('2026-11-26T01:00:00Z');
+    expect(s.proposals[0].meta).toMatchObject({ status: 'open', inCount: 2, voters: [w.users[0].nexconn_id, w.users[1].nexconn_id] });
+    expect(s.intents.map((i) => i.name).sort()).toEqual(['user0', 'user1', 'user2']);
+    expect(s.intents[0]).toMatchObject({ window: 'w1', bags: 1, isDemo: false });
+  });
+
+  test('a locked proposal is included with its pod id; cancelled ones are not', async () => {
+    const w = await makeWorld(3);
+    const pod = await lockWith(w, [0, 1]);
+    expect((await lobbySummary(w.db, w.lobbyId, w.users[2])).proposals[0].meta).toMatchObject({ status: 'locked', podId: pod });
+    await w.db.query(`update hop.proposals set status = 'cancelled'`);
+    expect((await lobbySummary(w.db, w.lobbyId, w.users[2])).proposals).toHaveLength(0);
+  });
+});

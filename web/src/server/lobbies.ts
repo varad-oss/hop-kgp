@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { DESTINATIONS, MAX_TRIP_DATE, WINDOWS, WINDOW_KEYS, type DestKey, type Direction, type WindowKey } from '@/domain/catalog';
-import { CARD_INTENT, type HopIntent } from '@/domain/cards';
+import { CARD_INTENT, type HopIntent, type HopProposal, type ProposalMeta } from '@/domain/cards';
 import { lobbyTitle } from '@/domain/copy';
 import { demoScope, type UserRow } from './auth';
 import type { Db } from './db';
 import { HttpError } from './http';
+import { botId } from './bot';
 import { lobbyChannelId } from './ids';
+import { proposalMeta } from './mirror';
 import type { NexconnApi } from './nexconn/api';
 
 export type LobbyRow = {
@@ -18,7 +20,7 @@ export type LobbyRow = {
   channel_id: string;
 };
 
-export const botId = () => process.env.HOPBOT_ID ?? 'hopbot';
+export { botId };
 
 let botReady = false;
 export async function ensureBot(nx: NexconnApi) {
@@ -131,13 +133,16 @@ export type LobbySummary = {
   lockedProposals: number;
   members: { nexconnId: string; name: string }[];
   myIntent: { window: WindowKey; bags: number } | null;
+  /** Open and locked plans straight from the database, so late joiners see them even without chat history. */
+  proposals: { proposal: HopProposal; meta: ProposalMeta }[];
+  intents: HopIntent[];
 };
 
 export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Promise<LobbySummary> {
   const lobby = await getLobby(db, lobbyId);
   assertCanSee(lobby, viewer);
-  const intents = await db.query<{ user_id: string; window_key: WindowKey; bags: number; name: string; nexconn_id: string }>(
-    `select i.user_id, i.window_key, i.bags, u.name, u.nexconn_id from hop.intents i join hop.users u on u.id = i.user_id
+  const intents = await db.query<{ id: string; user_id: string; window_key: WindowKey; bags: number; name: string; nexconn_id: string; hall: string | null; is_demo: boolean }>(
+    `select i.id, i.user_id, i.window_key, i.bags, u.name, u.nexconn_id, u.hall, u.is_demo from hop.intents i join hop.users u on u.id = i.user_id
       where i.lobby_id = $1 order by i.created_at`,
     [lobbyId],
   );
@@ -149,6 +154,29 @@ export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Pr
   );
   const n = (s: string) => parseInt(counts.find((c) => c.status === s)?.n ?? '0', 10);
   const mine = intents.find((r) => r.user_id === viewer.id);
+  const props = await db.query<{ id: string; creator_name: string; depart_at: string; meeting_point: string; vehicle: HopProposal['vehicle']; total_fare: number; seats: number }>(
+    `select pr.id, u.name as creator_name, to_char(pr.depart_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as depart_at,
+            pr.meeting_point, pr.vehicle, pr.total_fare, pr.seats
+       from hop.proposals pr join hop.users u on u.id = pr.creator_id
+      where pr.lobby_id = $1 and pr.status in ('open','locked') order by pr.created_at`,
+    [lobbyId],
+  );
+  const proposals = await Promise.all(
+    props.map(async (p) => ({
+      proposal: {
+        proposalId: p.id,
+        lobbyId,
+        creatorName: p.creator_name,
+        departAt: p.depart_at,
+        meetingPoint: p.meeting_point,
+        vehicle: p.vehicle,
+        totalFare: p.total_fare,
+        seats: p.seats,
+        isDemo: lobby.is_demo,
+      } satisfies HopProposal,
+      meta: await proposalMeta(db, p.id),
+    })),
+  );
   return {
     lobby,
     going: intents.length,
@@ -157,6 +185,8 @@ export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Pr
     lockedProposals: n('locked'),
     members: intents.map((r) => ({ nexconnId: r.nexconn_id, name: r.name })),
     myIntent: mine ? { window: mine.window_key, bags: mine.bags } : null,
+    proposals,
+    intents: intents.map((r) => ({ intentId: r.id, nexconnId: r.nexconn_id, name: r.name, hall: r.hall, window: r.window_key, bags: r.bags, isDemo: r.is_demo })),
   };
 }
 
