@@ -44,6 +44,9 @@ export default function Home() {
           <LandingActions />
         </Suspense>
         <LiveCounter />
+        <p className="text-sm text-muted">
+          <a className="underline" href="/privacy">Privacy</a> · <a className="underline" href="/terms">Terms</a>
+        </p>
       </div>
     </main>
   );
