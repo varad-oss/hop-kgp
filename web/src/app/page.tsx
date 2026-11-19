@@ -13,14 +13,15 @@ const SAMPLE: HopTicket = {
   meetingPoint: 'Main Building gate',
   vehicle: 'sedan',
   totalFare: 2800,
-  each: 700,
-  over: 0,
+  each: 934,
+  over: 2,
   seats: 4,
-  freeSeats: 0,
+  freeSeats: 1,
   isDemo: true,
   members: [
     { nexconnId: 'a', name: 'Aarav', hall: 'Azad', phone: 'Shown after lock' },
     { nexconnId: 'b', name: 'Meera', hall: 'SN/IG', phone: 'Shown after lock' },
+    { nexconnId: 'c', name: 'Riya', hall: 'Nehru', phone: 'Shown after lock' },
   ],
 };
 
