@@ -35,9 +35,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ action: string
         content: { proposalId: 'dev', note: 'metadata check' },
         metadata: { status: 'open', inCount: '1' },
       });
-      setTimeout(() => {
-        void nx.setMessageMetadata({ messageId: id, channelId: ROOM, userId: BOT(), metadata: { inCount: '2' } });
-      }, 2000);
+      await new Promise((r) => setTimeout(r, 2000));
+      await nx.setMessageMetadata({ messageId: id, channelId: ROOM, userId: BOT(), metadata: { inCount: '2' } });
       return Response.json({ ok: true, messageId: id });
     }
     throw new HttpError(404, 'not_found');

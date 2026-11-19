@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - heading "Dev room (loading)" [level=1] [ref=e3]
+    - list [ref=e4]
+    - generic [ref=e6]:
+      - textbox [ref=e7]
+      - button "Send" [ref=e8]
+    - 'button "Server: send proposal + update metadata in 2s" [ref=e9]'
+  - alert [ref=e10]

@@ -1,0 +1,13 @@
+- generic [ref=f1e1]:
+  - main [ref=f1e2]:
+    - heading "Dev room (ready)" [level=1] [ref=f1e11]
+    - list [ref=f1e4]:
+      - listitem [ref=f1e12]: "demo0b [RC:TxtMsg] hello from alice {}"
+      - listitem [ref=f1e13]: "hopbot [Hop:Proposal] {\"proposalId\":\"dev\",\"note\":\"metadata check\"} {\"inCount\":\"1\",\"status\":\"open\"}"
+      - listitem [ref=f1e14]: "hopbot [Hop:Proposal] {\"proposalId\":\"dev\",\"note\":\"metadata check\"} {\"status\":\"open\",\"inCount\":\"2\"}"
+    - generic [ref=f1e5]: "metadata D1UK-ICCO-09KF-PSJG: {\"inCount\":\"2\"}"
+    - generic [ref=f1e6]:
+      - textbox [ref=f1e7]
+      - button "Send" [ref=f1e8]
+    - 'button "Server: send proposal + update metadata in 2s" [active] [ref=f1e9]'
+  - alert [ref=f1e10]
