@@ -21,7 +21,7 @@ export type LobbyRow = {
 export const botId = () => process.env.HOPBOT_ID ?? 'hopbot';
 
 let botReady = false;
-async function ensureBot(nx: NexconnApi) {
+export async function ensureBot(nx: NexconnApi) {
   if (botReady) return;
   await nx.issueToken(botId(), 'Hop');
   botReady = true;
