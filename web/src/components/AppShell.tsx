@@ -38,6 +38,9 @@ export function AppShell({ title, subtitle, action, children }: { title: string;
   const active = (href: string) => path === href || path.startsWith(`${href}/`);
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
+      <a href="#main" className="sr-only z-30 rounded-full bg-ink px-4 py-2 font-bold text-bg focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
+        Skip to content
+      </a>
       <header className="sticky top-0 z-20 border-b border-line bg-bg/95 backdrop-blur">
         <div className="mx-auto flex min-h-14 w-full max-w-3xl items-center gap-6 px-4 md:px-6">
           <Link href="/home" className="flex items-center gap-2 font-display text-2xl font-semibold italic">
@@ -64,7 +67,7 @@ export function AppShell({ title, subtitle, action, children }: { title: string;
         </div>
       </header>
       <ConnectionBanner />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5 md:px-6 md:pb-12">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-3xl flex-1 px-4 pb-28 pt-5 outline-none md:px-6 md:pb-12">
         <div className="mb-5">
           <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[40px]">{title}</h1>
           {subtitle ? <p className="mt-1 text-muted">{subtitle}</p> : null}
