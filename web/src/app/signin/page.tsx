@@ -8,7 +8,7 @@ export const metadata = { title: 'Sign in', description: 'Sign in to Hop with yo
 export default function SignIn() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <PublicHeader cta={false} />
+      <PublicHeader />
       <main className="mx-auto w-full max-w-md flex-1 px-4 pt-10">
         <h1 className="font-display text-[40px] font-semibold leading-tight">Sign in to Hop</h1>
         <p className="mt-2 text-lg text-muted">Use your @kgpian.iitkgp.ac.in Google account. Hop is only for IIT Kharagpur students, and the server checks.</p>

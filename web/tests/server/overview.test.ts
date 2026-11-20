@@ -69,6 +69,12 @@ describe('departures', () => {
     expect(d.mine).toBe(false);
   });
 
+  test('works without a viewer for the public board: nothing is mine', async () => {
+    const w = await makeWorld(3);
+    const [d] = await departures(w.db, null, NOW);
+    expect(d).toMatchObject({ going: 3, mine: false });
+  });
+
   test('excludes demo rooms and past days', async () => {
     const demo = await makeWorld(2, { isDemo: true });
     expect(await departures(demo.db, demo.users[0], NOW)).toHaveLength(0);

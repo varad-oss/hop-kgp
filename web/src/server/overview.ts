@@ -129,7 +129,7 @@ export type Departure = {
 };
 
 /** Upcoming real rooms with counts only (no names), for the Departures board. */
-export async function departures(db: Db, viewer: UserRow, now: Date = new Date()): Promise<Departure[]> {
+export async function departures(db: Db, viewer: UserRow | null, now: Date = new Date()): Promise<Departure[]> {
   const rows = await db.query<{
     lobby_id: string;
     destination: DestKey;
@@ -147,13 +147,13 @@ export async function departures(db: Db, viewer: UserRow, now: Date = new Date()
             (select count(*) from hop.proposals p where p.lobby_id = l.id and p.status = 'locked')::text as locked_plans,
             (select to_char(min(p.depart_at) at time zone 'UTC', ${ISO}) from hop.proposals p
               where p.lobby_id = l.id and p.status in ('open','locked') and p.depart_at > $2) as first_depart,
-            exists (select 1 from hop.intents x where x.lobby_id = l.id and x.user_id = $1) as mine
+            exists (select 1 from hop.intents x where x.lobby_id = l.id and x.user_id = $1::uuid) as mine
        from hop.lobbies l
       where not l.is_demo and l.travel_date between $3::date and $4::date
         and exists (select 1 from hop.intents x where x.lobby_id = l.id)
       order by l.travel_date, l.direction, l.destination
       limit 300`,
-    [viewer.id, now.toISOString(), istToday(now), MAX_TRIP_DATE],
+    [viewer?.id ?? null, now.toISOString(), istToday(now), MAX_TRIP_DATE],
   );
   return rows.map((r) => ({
     lobbyId: r.lobby_id,

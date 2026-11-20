@@ -51,7 +51,8 @@ export type ProposalActions = {
   error?: string | null;
 };
 
-export function ProposalCard({ proposal, meta, me, ...a }: { proposal: HopProposal; meta: ProposalMeta } & { me: string } & ProposalActions) {
+/** A plan card. `preview` renders it read-only (no buttons) for the website. */
+export function ProposalCard({ proposal, meta, me, preview, ...a }: { proposal: HopProposal; meta: ProposalMeta } & { me: string; preview?: boolean } & ProposalActions) {
   const { status, inCount, voters, bags, podId } = meta;
   const free = Math.max(0, proposal.seats - inCount);
   const mineIn = voters.includes(me);
@@ -109,7 +110,7 @@ export function ProposalCard({ proposal, meta, me, ...a }: { proposal: HopPropos
         </p>
       ) : null}
 
-      {status !== 'cancelled' && (
+      {status !== 'cancelled' && !preview && (
         <div className="mt-3 flex flex-wrap gap-2">
           {locked ? (
             mineIn && podId ? (
@@ -144,7 +145,7 @@ export function ProposalCard({ proposal, meta, me, ...a }: { proposal: HopPropos
           ) : null}
         </div>
       )}
-      {!locked && mineIn && inCount < 2 ? <p className="mt-2 text-sm text-muted">Waiting for one more person before you can lock.</p> : null}
+      {!preview && !locked && mineIn && inCount < 2 ? <p className="mt-2 text-sm text-muted">Waiting for one more person before you can lock.</p> : null}
     </article>
   );
 }
@@ -216,6 +217,19 @@ export function TextBubble({ text, mine, sender }: { text: string; mine: boolean
         {!mine && sender ? <p className="text-xs font-bold text-muted">{sender}</p> : null}
         <p className="whitespace-pre-wrap break-words">{text}</p>
       </div>
+    </div>
+  );
+}
+
+/** The trip captain's note, as it appears in a trip chat. */
+export function CaptainNote({ text, live }: { text: string; live?: boolean }) {
+  return (
+    <div className="lacquer lacquer-frame rounded-[18px] px-4 py-3 text-on-ticket">
+      <p className="flex items-center gap-2 text-xs font-bold text-on-ticket/80">
+        <span aria-hidden className={`brass inline-block h-2 w-2 rounded-full ${live ? 'pulse' : ''}`} />
+        Trip captain
+      </p>
+      <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-relaxed">{text || '…'}</p>
     </div>
   );
 }
