@@ -47,7 +47,7 @@ export function LandingActions() {
       )}
       {params.get('error') === 'auth' && <ErrorNote>Google sign-in didn’t finish, perhaps because it was cancelled or the link expired. Tap the button to start again.</ErrorNote>}
       <Button variant="signal" busy={busy === 'google'} onClick={google} className="min-h-12 text-base">
-        Sign in with KGP Google
+        Continue with KGP email ID
       </Button>
       <Button variant="ghost" busy={busy === 'demo'} onClick={demo} className="min-h-12 text-base">
         Try the demo

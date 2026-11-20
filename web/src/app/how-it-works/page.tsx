@@ -85,7 +85,7 @@ export default function HowItWorks() {
         }
       >
         <p>Pick leaving or coming back, the station, the day, a time window and how many large bags you have. There’s no free text to write and no group to find.</p>
-        <p>Sign-in is <strong>KGP Google only</strong>, checked on the server, so everyone you meet is a student.</p>
+        <p>Signing up needs a <strong>KGP email ID</strong> (@kgpian.iitkgp.ac.in), checked on the server, so everyone you meet is a student.</p>
       </Step>
 
       <Step

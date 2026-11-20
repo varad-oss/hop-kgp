@@ -118,7 +118,7 @@ function Account({ me, refresh }: { me: Me; refresh: () => Promise<unknown> }) {
           </span>
           <div className="min-w-0">
             <p className="font-display text-2xl font-semibold leading-tight">{me.name}</p>
-            <p className="truncate text-sm text-muted">{me.isDemo ? 'Demo guest, not signed in' : me.email ?? 'Signed in with KGP Google'}</p>
+            <p className="truncate text-sm text-muted">{me.isDemo ? 'Demo guest, not signed in' : me.email ?? 'Signed in with KGP email ID'}</p>
           </div>
         </div>
       </Section>
@@ -127,13 +127,13 @@ function Account({ me, refresh }: { me: Me; refresh: () => Promise<unknown> }) {
         <Section title="Demo">
           <div className="rounded-[18px] border border-line bg-surface p-4 shadow-sm">
             <p>You’re in a private demo with two sample travellers. Nothing here is shared with real students, and it isn’t counted in Hop’s numbers.</p>
-            <Link href="/signin?next=/home" className="brass mt-3 inline-grid min-h-11 place-items-center rounded-full px-5 font-bold shadow-sm">Sign in with KGP Google</Link>
+            <Link href="/signin?next=/home" className="brass mt-3 inline-grid min-h-11 place-items-center rounded-full px-5 font-bold shadow-sm">Continue with KGP email ID</Link>
           </div>
         </Section>
       )}
       <Section title="Profile">
         <ProfileForm me={me} onSaved={refresh} />
-        <p className="mt-2 text-sm text-muted">{me.isDemo ? 'Demo details stay in the demo.' : 'Your name comes from your KGP Google account.'}</p>
+        <p className="mt-2 text-sm text-muted">{me.isDemo ? 'Demo details stay in the demo.' : 'Your name comes from your KGP email account.'}</p>
       </Section>
 
       <Section title="Help and policies">

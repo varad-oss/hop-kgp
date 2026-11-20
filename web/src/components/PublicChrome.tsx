@@ -51,13 +51,13 @@ export function PublicHeader({ current }: { current?: string }) {
         </nav>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <Link href="/signin" className="hidden min-h-11 place-items-center px-3 text-[15px] font-bold hover:underline sm:grid">
-            Sign in
+            Sign in / Sign up
           </Link>
           <Link href="/demo" className="brass grid min-h-11 place-items-center rounded-full px-5 text-[15px] font-bold shadow-sm">
             Try the demo
           </Link>
           <Suspense fallback={<span aria-hidden className="h-11 w-11 lg:hidden" />}>
-            <MobileMenu items={[...NAV, { href: '/signin', label: 'Sign in' }]} current={current} />
+            <MobileMenu items={[...NAV, { href: '/signin', label: 'Sign in / Sign up' }]} current={current} />
           </Suspense>
         </div>
       </Container>
@@ -79,7 +79,7 @@ export function PublicFooter() {
           <p className="mb-1 text-sm font-bold text-muted">Product</p>
           <Link href="/how-it-works" className="hover:underline">How it works</Link>
           <Link href="/demo" className="hover:underline">Try the demo</Link>
-          <Link href="/signin" className="hover:underline">Sign in</Link>
+          <Link href="/signin" className="hover:underline">Sign in / Sign up</Link>
         </nav>
         <nav aria-label="Project" className="flex flex-col [&_a]:flex [&_a]:min-h-10 [&_a]:items-center">
           <p className="mb-1 text-sm font-bold text-muted">Project</p>

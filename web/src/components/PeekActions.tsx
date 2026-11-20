@@ -18,7 +18,7 @@ export function PeekActions({ next }: { next: string }) {
   return (
     <div className="flex flex-col gap-2">
       <Button variant="signal" className="min-h-12 text-base" onClick={() => void signInWithKgpGoogle(next)}>
-        Sign in with KGP Google to join
+        Continue with KGP email ID to join
       </Button>
       <p className="text-sm text-muted">Names and numbers stay hidden until you’re in and the trip is locked.</p>
     </div>

@@ -71,7 +71,7 @@ export default function Home() {
               Try the live demo
             </Link>
             <Link href="/signin" className="grid min-h-12 place-items-center rounded-full border border-line bg-surface px-6 text-base font-bold hover:bg-surface-2">
-              Sign in with KGP Google
+              Continue with KGP email ID
             </Link>
           </div>
           <p className="mt-4 text-sm text-muted">The demo needs no account and takes about a minute.</p>
@@ -225,8 +225,8 @@ export default function Home() {
                 </div>
                 <div>
                   <p className="text-xl font-bold">A KGP student?</p>
-                  <p className="mt-2 text-on-ticket/80">Sign in with your @kgpian.iitkgp.ac.in account and post your trip. Your number stays hidden until you lock.</p>
-                  <Link href="/signin" className="mt-4 inline-grid min-h-12 place-items-center rounded-full border border-ticket-line px-6 font-bold hover:bg-on-ticket/10">Sign in with KGP Google</Link>
+                  <p className="mt-2 text-on-ticket/80">Continue with your @kgpian.iitkgp.ac.in email ID and post your trip. New here? That creates your account. Your number stays hidden until you lock.</p>
+                  <Link href="/signin" className="mt-4 inline-grid min-h-12 place-items-center rounded-full border border-ticket-line px-6 font-bold hover:bg-on-ticket/10">Continue with KGP email ID</Link>
                 </div>
               </div>
             </div>

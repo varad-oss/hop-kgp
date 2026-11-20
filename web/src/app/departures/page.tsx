@@ -74,7 +74,7 @@ function Board({ me }: { me: Me }) {
       {me.isDemo && (
         <p className="mb-4 rounded-[14px] border border-line bg-surface-2 px-4 py-3 text-sm">
           You’re in the demo, so these real rooms are view-only.{' '}
-          <Link href="/signin?next=/departures" className="font-bold underline underline-offset-2">Sign in with KGP Google</Link> to join one.
+          <Link href="/signin?next=/departures" className="font-bold underline underline-offset-2">Continue with KGP email ID</Link> to join one.
         </p>
       )}
 
@@ -153,7 +153,7 @@ function Board({ me }: { me: Me }) {
                       : r.mine
                         ? `/l/${r.lobbyId}`
                         : `/new?${new URLSearchParams({ d: r.destination, date: r.date, ...(r.direction === 'back' ? { dir: 'back' } : {}) })}`;
-                    const verb = me.isDemo ? 'Sign in' : r.mine ? 'Open room' : 'Join';
+                    const verb = me.isDemo ? 'Sign up' : r.mine ? 'Open room' : 'Join';
                     return (
                       <li key={r.lobbyId}>
                         <Link

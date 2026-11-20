@@ -45,7 +45,7 @@ export default function Demo() {
           </div>
           <div>
             <p className="font-bold">Two browsers?</p>
-            <p className="mt-1 text-muted">Each demo guest gets a private sandbox. To see two people in one room, students sign in with KGP Google.</p>
+            <p className="mt-1 text-muted">Each demo guest gets a private sandbox. To see two people in one room, students sign up with their KGP email ID.</p>
           </div>
           <div>
             <p className="font-bold">How it’s built</p>
