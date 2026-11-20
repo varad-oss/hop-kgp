@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { getDb } from '@/server/db';
 import { computeStats } from '@/server/stats';
 import { formatINR } from '@/domain/fare';
-import { PublicFooter, PublicHeader } from '@/components/PublicChrome';
+import { Container, PageIntro, SitePage } from '@/components/PublicChrome';
 
 export const metadata = { title: 'Traction', description: 'Live numbers for Hop at IIT Kharagpur. Demo and test accounts excluded.' };
 
@@ -62,16 +62,38 @@ async function Stats() {
 
 export default function StatsPage() {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <PublicHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-8 md:px-6">
-        <h1 className="font-display text-[40px] font-semibold leading-tight">Hop at IIT Kharagpur</h1>
-        <p className="mb-6 mt-2 text-lg text-muted">Live numbers from real students. Demo and test accounts are left out.</p>
+    <SitePage current="/stats">
+      <PageIntro
+        title="Hop at IIT Kharagpur"
+        lead="Live numbers from real students, recomputed every minute. Demo guests and test accounts are left out, so these are smaller and truer than the App Key’s user count."
+      />
+      <Container>
         <Suspense fallback={<p className="text-muted">Loading the numbers…</p>}>
           <Stats />
         </Suspense>
-      </main>
-      <PublicFooter />
-    </div>
+      </Container>
+
+      <section aria-labelledby="beyond" className="mt-20 border-t border-line pt-16">
+        <Container className="grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <h2 id="beyond" className="font-display text-[34px] font-semibold leading-tight md:text-[40px]">Beyond KGP</h2>
+            <p className="mt-3 text-lg text-muted">Where Hop could go next. <strong className="text-ink">This is a plan, not a result.</strong> None of it is built yet.</p>
+          </div>
+          <dl className="divide-y divide-line border-y border-line lg:col-span-7 lg:col-start-6">
+            {[
+              ['Every residential campus has the same exodus', 'Semester ends, festivals and long weekends empty a campus towards the same few stations and airports. A campus is just a list of stations and halls in Hop’s catalogue.'],
+              ['It grows through the trips themselves', 'Every plan has a share link that opens a counts-only page and leads straight into posting. Each locked trip pulls in the 2 or 3 people still looking, and return trips for January are posted in the same place.'],
+              ['It costs very little to run', 'Rooms and trips are Nexconn group channels, and our Nexconn plan includes 10,000 monthly active users. The server and database run on free hosting tiers today.'],
+              ['Ways it could pay for itself', 'Fixed-fare listings from campus cab agencies, sponsored station shuttles on peak days, or licensing to institutes and companies for shuttle coordination. Ideas only; we would test them with students first.'],
+            ].map(([k, v]) => (
+              <div key={k} className="py-5">
+                <dt className="text-lg font-bold">{k}</dt>
+                <dd className="mt-1 text-muted">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
+      </section>
+    </SitePage>
   );
 }

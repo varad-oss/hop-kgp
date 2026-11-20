@@ -139,7 +139,7 @@ function Account({ me, refresh }: { me: Me; refresh: () => Promise<unknown> }) {
       <Section title="Help and policies">
         <RowList>
           {[
-            ['/help', 'How Hop works', 'Rooms, plans, locking, fares, safety'],
+            ['/how-it-works', 'How Hop works', 'Rooms, plans, locking, fares, safety'],
             ['/privacy', 'Privacy', 'What we store and who sees it'],
             ['/terms', 'Terms', 'Using Hop'],
             ['/stats', 'Live numbers', 'Students, trips and money saved'],
