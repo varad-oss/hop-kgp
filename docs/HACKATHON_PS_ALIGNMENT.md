@@ -99,3 +99,23 @@ The Nexconn Build Challenge 2026 is an open hackathon with suggested tracks. It 
 | Is anyone using it? Could it be a business? | `/stats`: live real numbers (demo excluded) plus "Beyond KGP", clearly labelled as a plan |
 
 The final alignment score will be recalculated after implementation. D1, D2 and D4 remain open until they actually exist.
+
+## 8. Re-score after implementation (Sat 21 Nov, ~03:00 IST)
+
+| Requirement | Status now | Evidence |
+|---|---|---|
+| D1 Write-up PDF with App Key | **Done** (6 pages; regenerate with the video link) | `submission/Hop-writeup.pdf` (git-ignored; built by `submission/build-writeup.mjs` from live data) |
+| D2 Demo video | **Not done (user)** | Script: `docs/DEMO_VIDEO_SCRIPT.md` |
+| D3 Live URL, laptop-first | **Done** | Website plus `/demo`; see `docs/WEBSITE_REVIEW.md` |
+| D4 Public GitHub repo | **Done** | https://github.com/varad-oss/hop-kgp (history scanned; a fake fixture key was rewritten out) |
+| D5 Traction | **Not done (launch pending)** | `/stats`: 2 students, 0 locked trips |
+| R1 SDK depth, demonstrated | **Done** | `/built-on-nexconn` table with code links. Typing status is not available for group channels in the Web SDK, so it was deliberately not faked. |
+
+| Criterion | Weight | Before | Now | Why |
+|---|---:|---:|---:|---|
+| Completeness & UX | 50 | 7 | 8.5 | Laptop-first site, guided demo with the live app, two-pane desktop room and trip, clipped-fare bug fixed |
+| Innovation & scenario value | 30 | 7 | 8 | The problem is dramatised; the five interactions are explained and demonstrable in a minute |
+| Business & growth | 20 | 2 | 3 | Viability is written up (labelled as a plan). Traction is still 2 users |
+| **Weighted** | | **5.9** | **7.45 / 10** | |
+
+**Alignment score: 70 / 100.** It is capped by D2 (video, required) and D5 (traction). Both depend on the user: recording the video and launching on campus today.
