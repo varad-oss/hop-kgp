@@ -37,3 +37,10 @@ Still open from the review: confirm webhook in Console; real iPhone/Android + KG
 - Webhook runs on the Node runtime (Edge is rejected with Cache Components); handler is DB-free.
 - Atkinson Hyperlegible + Barlow Condensed, station-signage palette (navy / signal yellow / go green), light + dark.
 - Temporary: `/gallery` (UI fixtures) and `/dev` (SDK check room) — delete before submission.
+
+## Fri 20 Nov, ~13:25 IST
+- New theme live: "first-class carriage" (lacquer green, brass foil, Bodoni Moda + Manrope), light and dark.
+- AI trip captain live: "Catch me up" on a pod streams a ≤60-word summary as a Nexconn `RC:StreamMsg` from the Hop bot (Gemini; plain built-in summary when no key or the model fails). 3 per pod per hour.
+  - Finding: server-sent stream messages are stored but not pushed live to web clients, so the requester's client fetches the message by id and pulls deltas with `requestStreamMessage()`. Other members see it on their next load.
+  - Needs `GEMINI_API_KEY` in Vercel to use the model.
+- Webhook: no `pre_messaging` calls seen in logs after a lobby message at 13:11; Console config needs a recheck.
