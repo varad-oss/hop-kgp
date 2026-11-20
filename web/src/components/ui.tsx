@@ -113,8 +113,27 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 export const inputClass =
   'min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-[16px] text-ink placeholder:text-muted';
 
-export function Shell({ children, wide }: { children: ReactNode; wide?: boolean }) {
-  return <main className={`mx-auto flex w-full flex-1 flex-col ${wide ? 'max-w-3xl' : 'max-w-md'}`}>{children}</main>;
+/** Page frame. `workspace` widens to a two-pane desktop layout with panes that scroll on their own. */
+export function Shell({ children, wide, workspace }: { children: ReactNode; wide?: boolean; workspace?: boolean }) {
+  const width = workspace ? 'max-w-md lg:h-dvh lg:max-w-6xl lg:border-x lg:border-line' : wide ? 'max-w-3xl' : 'max-w-md';
+  return <main className={`mx-auto flex w-full flex-1 flex-col ${width}`}>{children}</main>;
+}
+
+/** Room and trip body: one scrolling column on phones; on desktop a left pane and a chat pane with the composer under it. */
+export function Workspace({ side, chat, composer, onScroll, sideLabel, chatLabel }: { side: ReactNode; chat: ReactNode; composer?: ReactNode; onScroll?: (el: HTMLElement) => void; sideLabel: string; chatLabel: string }) {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[minmax(0,1fr)_auto]">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto py-4 lg:contents" onScroll={(e) => onScroll?.(e.currentTarget)}>
+        <section aria-label={sideLabel} className="flex flex-col gap-3 lg:row-span-2 lg:overflow-y-auto lg:border-r lg:border-line lg:py-4">
+          {side}
+        </section>
+        <section aria-label={chatLabel} className="flex flex-col gap-3 lg:col-start-2 lg:row-start-1 lg:overflow-y-auto lg:py-4" onScroll={(e) => onScroll?.(e.currentTarget)}>
+          {chat}
+        </section>
+      </div>
+      {composer ? <div className="lg:col-start-2 lg:row-start-2">{composer}</div> : null}
+    </div>
+  );
 }
 
 export function TopBar({ title, back, right }: { title: ReactNode; back?: string; right?: ReactNode }) {

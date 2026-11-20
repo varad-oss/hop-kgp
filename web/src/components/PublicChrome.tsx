@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { MobileMenu } from './MobileMenu';
 
 export const NAV = [
@@ -56,7 +56,9 @@ export function PublicHeader({ current }: { current?: string }) {
           <Link href="/demo" className="brass grid min-h-11 place-items-center rounded-full px-5 text-[15px] font-bold shadow-sm">
             Try the demo
           </Link>
-          <MobileMenu items={[...NAV, { href: '/signin', label: 'Sign in' }]} current={current} />
+          <Suspense fallback={<span aria-hidden className="h-11 w-11 lg:hidden" />}>
+            <MobileMenu items={[...NAV, { href: '/signin', label: 'Sign in' }]} current={current} />
+          </Suspense>
         </div>
       </Container>
     </header>

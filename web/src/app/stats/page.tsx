@@ -4,7 +4,7 @@ import { computeStats } from '@/server/stats';
 import { formatINR } from '@/domain/fare';
 import { Container, PageIntro, SitePage } from '@/components/PublicChrome';
 
-export const metadata = { title: 'Traction', description: 'Live numbers for Hop at IIT Kharagpur. Demo and test accounts excluded.' };
+export const metadata = { title: 'Live numbers', description: 'Live numbers for Hop at IIT Kharagpur. Demo and test accounts excluded.' };
 
 function Tile({ value, label }: { value: string; label: string }) {
   return (
@@ -31,7 +31,7 @@ async function Stats() {
           Median time from opening a link to posting a trip: <strong>{Math.round(s.medianLinkToIntentMs / 1000)} seconds</strong>.
         </p>
       )}
-      <section aria-labelledby="daily">
+      <section aria-labelledby="daily" className="max-w-3xl">
         <h2 id="daily" className="font-display text-2xl font-semibold">Each day</h2>
         {s.daily.length === 0 ? (
           <p className="mt-2 text-muted">No activity yet.</p>

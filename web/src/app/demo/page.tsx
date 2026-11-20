@@ -20,7 +20,7 @@ const STEPS: DemoStep[] = [
   {
     on: 'trip',
     title: 'Watch the fare re-split, then catch up',
-    body: 'Tap “Demo: Meera leaves”. The ticket re-splits to ₹1,400 and says why. Then tap Catch me up and the trip captain writes a summary as you watch.',
+    body: 'Tap “Demo: Meera leaves”. The ticket re-splits to ₹1,400 for the two of you. Then tap Catch me up and the trip captain writes a summary as you watch.',
     sdk: 'a re-sent Hop:Ticket card; an RC:StreamMsg streamed by Gemini',
   },
 ];

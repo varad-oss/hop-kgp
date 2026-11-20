@@ -11,7 +11,7 @@ import { ConnectionBanner } from '@/components/ConnectionBanner';
 import { IntentCard, ProposalCard, TextBubble } from '@/components/cards';
 import { ProfileModal } from '@/components/ProfileModal';
 import { ProposeSheet } from '@/components/ProposeSheet';
-import { Button, EmptyState, Shell, Sheet, Spinner, TopBar } from '@/components/ui';
+import { Button, EmptyState, Shell, Sheet, Spinner, TopBar, Workspace } from '@/components/ui';
 import { parseProposalMeta, type HopIntent, type HopProposal, type ProposalMeta } from '@/domain/cards';
 import { DESTINATIONS, WINDOWS, type DestKey, type Direction, type WindowKey } from '@/domain/catalog';
 import { formatTime, formatTripDate, lobbyTitle, summaryLine } from '@/domain/copy';
@@ -178,43 +178,54 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
         ))}
       </ul>
 
-      <div
-        className="flex flex-1 flex-col gap-3 overflow-y-auto py-4"
-        onScroll={(e) => {
-          const el = e.currentTarget;
+      <Workspace
+        sideLabel="People and plans"
+        chatLabel="Room chat"
+        onScroll={(el) => {
           atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
         }}
-      >
-        {status === 'loading' && <Spinner label="Loading messages" />}
-        {status === 'error' && (
-          <EmptyState title="Messages didn’t load" action={<Button onClick={() => location.reload()}>Try again</Button>}>
-            Check your connection. Campus WiFi sometimes blocks chat; mobile data usually works.
-          </EmptyState>
-        )}
-        {summary.lobby.isDemo && (
-          <p className="mx-3 rounded-xl bg-signal px-3 py-2 text-sm font-bold text-on-signal">
-            Demo room: tap I’m in on the plan, then Lock trip. The other travellers are labelled Demo.
-          </p>
-        )}
-        {summary.intents.map((i) => (
-          <IntentCard key={`i-${i.intentId}`} intent={{ ...i, window: i.window in WINDOWS ? i.window : 'w1' }} mine={i.nexconnId === me.nexconnId} />
-        ))}
-        {summary.proposals.map((p) => renderProposal(`p-${p.proposal.proposalId}`, p.proposal, metaFor(p)))}
-        {status === 'ready' && summary.proposals.length === 0 && summary.intents.length <= 1 && (
-          <EmptyState title="You’re the first one here">Share this room so others find it, or propose a plan to get things moving.</EmptyState>
-        )}
-        {messages.filter((m) => m.type === 'RC:TxtMsg').map((m) => {
-          const name = summary.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
-          return <TextBubble key={m.uid} text={textOf(m.content)} mine={m.senderId === me.nexconnId || m.mine} sender={name} />;
-        })}
-        <div ref={bottomRef} />
-      </div>
-
-      <Composer
-        guardPhones
-        disabled={status !== 'ready'}
-        onSend={(t) => sendText(t)}
-        onPropose={summary.myIntent ? () => setProposeOpen(true) : undefined}
+        side={
+          <>
+            {summary.lobby.isDemo && (
+              <p className="mx-3 rounded-xl bg-signal px-3 py-2 text-sm font-bold text-on-signal">
+                Demo room: tap I’m in on the plan, then Lock trip. The other travellers are labelled Demo.
+              </p>
+            )}
+            {summary.intents.map((i) => (
+              <IntentCard key={`i-${i.intentId}`} intent={{ ...i, window: i.window in WINDOWS ? i.window : 'w1' }} mine={i.nexconnId === me.nexconnId} />
+            ))}
+            {summary.proposals.map((p) => renderProposal(`p-${p.proposal.proposalId}`, p.proposal, metaFor(p)))}
+            {status === 'ready' && summary.proposals.length === 0 && summary.intents.length <= 1 && (
+              <EmptyState title="You’re the first one here">Share this room so others find it, or propose a plan to get things moving.</EmptyState>
+            )}
+          </>
+        }
+        chat={
+          <>
+            {status === 'loading' && <Spinner label="Loading messages" />}
+            {status === 'error' && (
+              <EmptyState title="Messages didn’t load" action={<Button onClick={() => location.reload()}>Try again</Button>}>
+                Check your connection. Campus WiFi sometimes blocks chat; mobile data usually works.
+              </EmptyState>
+            )}
+            {status === 'ready' && messages.filter((m) => m.type === 'RC:TxtMsg').length === 0 && (
+              <p className="mx-3 hidden text-sm text-muted lg:block">No messages yet. Say hi, or ask who’s booking the cab.</p>
+            )}
+            {messages.filter((m) => m.type === 'RC:TxtMsg').map((m) => {
+              const name = summary.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
+              return <TextBubble key={m.uid} text={textOf(m.content)} mine={m.senderId === me.nexconnId || m.mine} sender={name} />;
+            })}
+            <div ref={bottomRef} />
+          </>
+        }
+        composer={
+          <Composer
+            guardPhones
+            disabled={status !== 'ready'}
+            onSend={(t) => sendText(t)}
+            onPropose={summary.myIntent ? () => setProposeOpen(true) : undefined}
+          />
+        }
       />
       <ProposeSheet
         open={proposeOpen}
@@ -267,7 +278,7 @@ function LobbyRoute() {
 
 export default function LobbyPage() {
   return (
-    <Shell>
+    <Shell workspace>
       <Suspense fallback={<Spinner />}>
         <LobbyRoute />
       </Suspense>

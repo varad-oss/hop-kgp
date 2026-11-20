@@ -10,7 +10,7 @@ import { ConnectionBanner } from '@/components/ConnectionBanner';
 import { TextBubble, TicketCard } from '@/components/cards';
 import { FeedbackPrompt, ReturnTripPrompt } from '@/components/PodPrompts';
 import { StreamBubble } from '@/components/StreamBubble';
-import { Button, EmptyState, Shell, Sheet, Spinner, TopBar, ErrorNote } from '@/components/ui';
+import { Button, EmptyState, Shell, Sheet, Spinner, TopBar, ErrorNote, Workspace } from '@/components/ui';
 import type { HopTicket } from '@/domain/cards';
 import { DESTINATIONS } from '@/domain/catalog';
 import { ticketIcs } from '@/domain/ics';
@@ -203,71 +203,80 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
         right={!archived && <Button variant="ghost" onClick={() => setLeaveOpen(true)}>Leave</Button>}
       />
       <ConnectionBanner />
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto py-4">
-        <TicketCard ticket={ticket} me={me.nexconnId} onCalendar={downloadIcs} />
-        {!archived && (
-          <div className="mx-3">
-            <Button variant="ghost" className="w-full" busy={captainBusy} onClick={() => void askCaptain()}>
-              <span aria-hidden className="brass inline-block h-2 w-2 rounded-full" />
-              Catch me up
-            </Button>
-            {captainError && <p role="alert" className="mt-1 text-sm font-bold text-stop">{captainError}</p>}
-          </div>
-        )}
-        {ticket.isDemo && (
-          <div className="mx-3">
-            <Button
-              variant="ghost"
-              className="w-full"
-              disabled={meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera')}
-              onClick={() => {
-                setMeeraGone(true);
-                void api.send('POST', '/api/demo/leave').then(load);
-              }}
-            >
-              {meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera') ? 'Meera has left. The fare re-split.' : 'Demo: Meera leaves'}
-            </Button>
-          </div>
-        )}
-        {showFeedback && (
-          <FeedbackPrompt
-            podId={podId}
-            onDone={() => {
-              try {
-                localStorage.setItem(`hop:fb:${podId}`, '1');
-              } catch {
-                /* ignore */
-              }
-              setShowFeedback(false);
-            }}
-          />
-        )}
-        {!showFeedback && !ticket.isDemo && <ReturnTripPrompt destination={ticket.destination} />}
-        {archived && <p className="mx-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">This trip has ended. The chat is read-only.</p>}
-        {status === 'loading' && <Spinner label="Loading messages" />}
-        {status === 'error' && <ErrorNote>Messages didn’t load. Reload to try again.</ErrorNote>}
-        {messages.filter((m) => m.type === 'RC:TxtMsg' || m.type === 'RC:StreamMsg').map((m) => {
-          if (m.type === 'RC:StreamMsg') return <StreamBubble key={m.uid} message={m} />;
-          const mineMsg = m.mine || m.senderId === me.nexconnId;
-          const name = ticket.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
-          return (
-            <div key={m.uid}>
-              <TextBubble
-                text={typeof m.content === 'string' ? m.content : String(m.content?.text ?? m.content?.content ?? '')}
-                mine={mineMsg}
-                sender={name}
+      <Workspace
+        sideLabel="Trip ticket"
+        chatLabel="Trip chat"
+        side={
+          <>
+            <TicketCard ticket={ticket} me={me.nexconnId} onCalendar={downloadIcs} />
+            {!archived && (
+              <div className="mx-3">
+                <Button variant="ghost" className="w-full" busy={captainBusy} onClick={() => void askCaptain()}>
+                  <span aria-hidden className="brass inline-block h-2 w-2 rounded-full" />
+                  Catch me up
+                </Button>
+                {captainError && <p role="alert" className="mt-1 text-sm font-bold text-stop">{captainError}</p>}
+              </div>
+            )}
+            {ticket.isDemo && (
+              <div className="mx-3">
+                <Button
+                  variant="ghost"
+                  className="w-full"
+                  disabled={meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera')}
+                  onClick={() => {
+                    setMeeraGone(true);
+                    void api.send('POST', '/api/demo/leave').then(load);
+                  }}
+                >
+                  {meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera') ? 'Meera has left. The fare re-split.' : 'Demo: Meera leaves'}
+                </Button>
+              </div>
+            )}
+            {showFeedback && (
+              <FeedbackPrompt
+                podId={podId}
+                onDone={() => {
+                  try {
+                    localStorage.setItem(`hop:fb:${podId}`, '1');
+                  } catch {
+                    /* ignore */
+                  }
+                  setShowFeedback(false);
+                }}
               />
-              {mineMsg && m.uid === lastMineUid && seenBy ? <p className="mr-4 mt-0.5 text-right text-xs text-muted">Seen by {seenBy}</p> : null}
-            </div>
-          );
-        })}
-        <div ref={bottomRef} />
-      </div>
-      {!archived && (
-        <>
-          <Composer chips={QUICK} disabled={status !== 'ready'} onSend={(t) => sendText(t, { needReceipt: true })} />
-        </>
-      )}
+            )}
+            {!showFeedback && !ticket.isDemo && <ReturnTripPrompt destination={ticket.destination} />}
+            {archived && <p className="mx-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">This trip has ended. The chat is read-only.</p>}
+          </>
+        }
+        chat={
+          <>
+            {status === 'loading' && <Spinner label="Loading messages" />}
+            {status === 'error' && <ErrorNote>Messages didn’t load. Reload to try again.</ErrorNote>}
+            {status === 'ready' && messages.length === 0 && (
+              <p className="mx-3 hidden text-sm text-muted lg:block">No messages yet. Agree who books the cab, or tap Catch me up for a summary.</p>
+            )}
+            {messages.filter((m) => m.type === 'RC:TxtMsg' || m.type === 'RC:StreamMsg').map((m) => {
+              if (m.type === 'RC:StreamMsg') return <StreamBubble key={m.uid} message={m} />;
+              const mineMsg = m.mine || m.senderId === me.nexconnId;
+              const name = ticket.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
+              return (
+                <div key={m.uid}>
+                  <TextBubble
+                    text={typeof m.content === 'string' ? m.content : String(m.content?.text ?? m.content?.content ?? '')}
+                    mine={mineMsg}
+                    sender={name}
+                  />
+                  {mineMsg && m.uid === lastMineUid && seenBy ? <p className="mr-4 mt-0.5 text-right text-xs text-muted">Seen by {seenBy}</p> : null}
+                </div>
+              );
+            })}
+            <div ref={bottomRef} />
+          </>
+        }
+        composer={archived ? undefined : <Composer chips={QUICK} disabled={status !== 'ready'} onSend={(t) => sendText(t, { needReceipt: true })} />}
+      />
       <Sheet open={leaveOpen} onClose={() => setLeaveOpen(false)} title="Leave this trip?">
         <p className="mb-4 text-muted">Your seat opens up and the fare is re-split between the others.</p>
         {leaveError && <div className="mb-3"><ErrorNote>{leaveError}</ErrorNote></div>}
@@ -287,7 +296,7 @@ function PodRoute() {
 
 export default function PodPage() {
   return (
-    <Shell>
+    <Shell workspace>
       <Suspense fallback={<Spinner />}>
         <PodRoute />
       </Suspense>

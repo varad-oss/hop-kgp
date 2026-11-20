@@ -174,7 +174,7 @@ export function TicketCard({ ticket, me, onCalendar }: { ticket: HopTicket; me?:
         <div className="brass relative w-[7.25rem] shrink-0 p-3">
           <span aria-hidden className="perf absolute inset-y-3 -left-px w-[2px]" />
           <p className="text-sm font-bold">You pay</p>
-          <p className="font-display text-4xl font-semibold leading-none num">{formatINR(ticket.each)}</p>
+          <p className={`font-display font-semibold leading-none num ${formatINR(ticket.each).length > 4 ? 'text-[26px]' : 'text-4xl'}`}>{formatINR(ticket.each)}</p>
           <p className="mt-1 text-sm num">{ticket.over > 0 ? `${formatINR(ticket.over)} over` : 'exact split'}</p>
           <p className="mt-3 text-sm font-bold">{ticket.freeSeats > 0 ? `${ticket.freeSeats} seat${ticket.freeSeats === 1 ? '' : 's'} open` : 'Full'}</p>
         </div>
