@@ -149,11 +149,11 @@ export function geminiGenerator(apiKey: string | undefined, model = process.env.
       headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 200, temperature: 0.4, thinkingConfig: { thinkingBudget: 0 } },
+        generationConfig: { maxOutputTokens: 400, temperature: 0.4 },
       }),
       signal: AbortSignal.timeout(20_000),
     });
-    if (!res.ok || !res.body) throw new Error(`gemini ${res.status}`);
+    if (!res.ok || !res.body) throw new Error(`gemini ${res.status}: ${(await res.text().catch(() => '')).slice(0, 300)}`);
     const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
     let buf = '';
     let pending = '';
