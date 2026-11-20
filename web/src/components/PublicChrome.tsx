@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Suspense, type ReactNode } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 import { MobileMenu } from './MobileMenu';
 
 export const NAV = [
@@ -59,6 +60,7 @@ export function PublicHeader({ current }: { current?: string }) {
           <Suspense fallback={<span aria-hidden className="h-11 w-11 lg:hidden" />}>
             <MobileMenu items={[...NAV, { href: '/signin', label: 'Sign in / Sign up' }]} current={current} />
           </Suspense>
+          <ThemeToggle />
         </div>
       </Container>
     </header>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bodoni_Moda, Manrope } from "next/font/google";
 import "./globals.css";
+import { THEME_SCRIPT } from "@/components/ThemeToggle";
 
 const display = Bodoni_Moda({ variable: "--font-display", subsets: ["latin"], weight: "variable", axes: ["opsz"] });
 const body = Manrope({ variable: "--font-body", subsets: ["latin"], weight: "variable" });
@@ -23,7 +24,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${display.variable} ${body.variable} h-full antialiased`}>
+    <html lang="en-IN" className={`${display.variable} ${body.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

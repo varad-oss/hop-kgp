@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ConnectionBanner } from './ConnectionBanner';
+import { ThemeToggle } from './ThemeToggle';
 
 const TABS = [
   {
@@ -63,7 +64,10 @@ export function AppShell({ title, subtitle, action, children }: { title: string;
               ))}
             </ul>
           </nav>
-          <div className="ml-auto md:ml-0">{action}</div>
+          <div className="ml-auto flex items-center gap-2 md:ml-0">
+            {action}
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <ConnectionBanner />

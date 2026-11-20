@@ -3,6 +3,7 @@
 /* Hop — "first-class carriage": lacquered bottle green, brushed brass, stone paper.
    Token names are kept from v1 (signal = brass accent, go = confirm, ticket = lacquer). */
 :root {
+  color-scheme: light;
   --bg: #eceee9;
   --surface: #fbfbf8;
   --surface-2: #e2e6df;
@@ -24,8 +25,10 @@
   --lift-strong: 0 2px 0 rgb(15 31 26 / 0.05), 0 22px 44px -18px rgb(10 30 22 / 0.5);
 }
 
+/* Dark: follows the system unless the visitor picked a theme (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #07100d;
     --surface: #0e1a15;
     --surface-2: #15261f;
@@ -44,6 +47,27 @@
     --lift: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -16px rgb(0 0 0 / 0.8);
     --lift-strong: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 48px -20px rgb(0 0 0 / 0.9);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #07100d;
+  --surface: #0e1a15;
+  --surface-2: #15261f;
+  --ink: #ece7d9;
+  --muted: #a3aea7;
+  --line: #20372d;
+  --signal: #d3b26c;
+  --on-signal: #14120b;
+  --go: #86c6a5;
+  --on-go: #07201a;
+  --stop: #f0897c;
+  --ticket: #11392c;
+  --on-ticket: #f4efe1;
+  --ticket-line: #2c5e4c;
+  --focus: #d3b26c;
+  --lift: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -16px rgb(0 0 0 / 0.8);
+  --lift-strong: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 48px -20px rgb(0 0 0 / 0.9);
 }
 
 @theme inline {

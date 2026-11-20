@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 type Variant = 'primary' | 'signal' | 'go' | 'ghost' | 'danger';
 
@@ -146,6 +147,7 @@ export function TopBar({ title, back, right }: { title: ReactNode; back?: string
       )}
       <div className="min-w-0 flex-1">{title}</div>
       {right}
+      <ThemeToggle />
     </header>
   );
 }
