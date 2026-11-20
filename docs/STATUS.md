@@ -23,6 +23,10 @@
 ## Three-user journey verified live (paired guest sessions)
 Alice posts trip -> proposes (hit + fixed a dead end: profile required) -> Carol joins late and sees plan + intents (after DB-backed fix) -> Carol votes, Alice's page updates to 2 in live -> Alice locks -> pod ticket ₹1,400 -> Bob takes a free seat after lock -> ticket re-splits to ₹934 on both pages with a "joined" banner -> chat + "Seen by 1".
 
+## P0 gate review (cold reviewer, Fri 20 Nov): 6.25 / 10 before fixes
+Report: `docs/reviews/2026-11-20-p0-gate.md`. Fixed same day (141 tests green, deployed): open redirect in auth callback; server-side @kgpian gate on every API call; dev routes + env var removed; double-pod bug (migration 0003) and lock-after-departure; webhook replay/empty-secret hardening; ICS injection; control chars in meeting point; rate limits on all action routes; demo rate limit no longer blocks reopening; Nexconn-blip self-healing (card send rollback, join retry); lobby cards come only from the DB (forged messages cannot spoof); tickets only from the API; pod chat scroll; confirm tap for shared join links; presence dots hidden when unavailable; landing counter hidden under 10 users; `.env.example` committed, web/README replaced.
+Still open from the review: confirm webhook in Console; real iPhone/Android + KGP WiFi; Lighthouse; AI captain (P1); users (the 20% criterion).
+
 ## Next
 - Two-real-user pod test (read receipts, join-free-seat, leave re-split) using paired demo sessions.
 - Delete `/gallery` and `/dev`, remove DEV_ROOM_ENABLED, README + SDK feature map, P0 gate review, then soft launch.
