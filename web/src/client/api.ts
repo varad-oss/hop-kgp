@@ -29,6 +29,7 @@ const MESSAGES: Record<string, string> = {
   not_in_lobby: 'Post your trip in this lobby first.',
   not_voter: 'Tap I’m in first, then you can lock.',
   slow_down: 'Too many taps. Wait a minute and try again.',
+  not_live: 'This trip has ended.',
   profile_required: 'Add your hall and phone first.',
   date_out_of_range: 'Pick a date from today until 31 Jan.',
   bad_time: 'Pick a time on the trip day that is still ahead.',

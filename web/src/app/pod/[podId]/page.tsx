@@ -9,6 +9,7 @@ import { Composer } from '@/components/Composer';
 import { ConnectionBanner } from '@/components/ConnectionBanner';
 import { TextBubble, TicketCard } from '@/components/cards';
 import { FeedbackPrompt, ReturnTripPrompt } from '@/components/PodPrompts';
+import { StreamBubble } from '@/components/StreamBubble';
 import { Button, EmptyState, Shell, Sheet, Spinner, TopBar, ErrorNote } from '@/components/ui';
 import type { HopTicket } from '@/domain/cards';
 import { DESTINATIONS } from '@/domain/catalog';
@@ -29,6 +30,8 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [seenBy, setSeenBy] = useState<number | null>(null);
   const [meeraGone, setMeeraGone] = useState(false);
+  const [captainBusy, setCaptainBusy] = useState(false);
+  const [captainError, setCaptainError] = useState<string | null>(null);
 
   const retries = useRef(0);
   const load = useCallback(() => {
@@ -69,7 +72,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
   }, [pod, podId]);
 
   const live = pod && pod.status !== 'pending';
-  const { messages, status, sendText } = useChannelMessages(live ? pod.channelId : null);
+  const { messages, status, sendText, fetchUntil } = useChannelMessages(live ? pod.channelId : null);
 
   // The ticket always comes from the server, never from a chat message, so nobody can post a fake one.
   const latestTicket = pod?.ticket;
@@ -80,7 +83,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
 
   // Keep the newest message in view, and bring it into view when I send one.
   const bottomRef = useRef<HTMLDivElement>(null);
-  const textCount = useMemo(() => messages.filter((m) => m.type === 'RC:TxtMsg').length, [messages]);
+  const textCount = useMemo(() => messages.filter((m) => m.type === 'RC:TxtMsg' || m.type === 'RC:StreamMsg').length, [messages]);
   const firstLoad = useRef(true);
   useEffect(() => {
     if (firstLoad.current) {
@@ -122,6 +125,31 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
     } catch (e) {
       setLeaveError(errorText(e));
       setLeaveBusy(false);
+    }
+  }
+
+  async function askCaptain() {
+    if (!pod) return;
+    setCaptainBusy(true);
+    setCaptainError(null);
+    const names = new Map(pod.ticket.members.map((m) => [m.nexconnId, m.name]));
+    const recent = messages
+      .filter((m) => m.type === 'RC:TxtMsg')
+      .slice(-30)
+      .map((m) => ({
+        name: names.get(m.senderId) ?? 'Someone',
+        text: typeof m.content === 'string' ? m.content : String(m.content?.text ?? m.content?.content ?? ''),
+      }));
+    try {
+      const r = await api.send<{ messageId: string | null }>('POST', `/api/pods/${podId}/captain`, { recent });
+      for (let i = 0; r.messageId && i < 8; i++) {
+        if (await fetchUntil(r.messageId)) break;
+        await new Promise((res) => setTimeout(res, 500));
+      }
+    } catch (e) {
+      setCaptainError(errorText(e));
+    } finally {
+      setCaptainBusy(false);
     }
   }
 
@@ -177,6 +205,15 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
       <ConnectionBanner />
       <div className="flex flex-1 flex-col gap-3 overflow-y-auto py-4">
         <TicketCard ticket={ticket} me={me.nexconnId} onCalendar={downloadIcs} />
+        {!archived && (
+          <div className="mx-3">
+            <Button variant="ghost" className="w-full" busy={captainBusy} onClick={() => void askCaptain()}>
+              <span aria-hidden className="brass inline-block h-2 w-2 rounded-full" />
+              Catch me up
+            </Button>
+            {captainError && <p role="alert" className="mt-1 text-sm font-bold text-stop">{captainError}</p>}
+          </div>
+        )}
         {ticket.isDemo && (
           <div className="mx-3">
             <Button
@@ -209,7 +246,8 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
         {archived && <p className="mx-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">This trip has ended. The chat is read-only.</p>}
         {status === 'loading' && <Spinner label="Loading messages" />}
         {status === 'error' && <ErrorNote>Messages didn’t load. Reload to try again.</ErrorNote>}
-        {messages.filter((m) => m.type === 'RC:TxtMsg').map((m) => {
+        {messages.filter((m) => m.type === 'RC:TxtMsg' || m.type === 'RC:StreamMsg').map((m) => {
+          if (m.type === 'RC:StreamMsg') return <StreamBubble key={m.uid} message={m} />;
           const mineMsg = m.mine || m.senderId === me.nexconnId;
           const name = ticket.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
           return (

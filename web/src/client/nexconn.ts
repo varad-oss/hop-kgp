@@ -1,9 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CARD_INTENT, CARD_PROPOSAL, CARD_TICKET } from '@/domain/cards';
-import { emitMessage, emitMetadata, getConnStatus, onChannelMessage, onMetadata, setConnStatus, setOnline, setPresenceOk, type ChatMessage } from './store';
+import { emitMessage, emitMetadata, emitStream, getConnStatus, onChannelMessage, onMetadata, setConnStatus, setOnline, setPresenceOk, type ChatMessage } from './store';
 
-export { useConnection, onMetadata, usePresence, usePresenceAvailable } from './store';
+export { useConnection, onMetadata, usePresence, usePresenceAvailable, useStream } from './store';
 export type { ChatMessage } from './store';
 
 type Sdk = typeof import('@nexconn/chat');
@@ -69,6 +69,8 @@ export function connectNexconn(): Promise<void> {
         },
         onMessageMetadataUpdated: ({ messageId, channelIdentifier, metadata }) =>
           emitMetadata((channelIdentifier as any).channelId, messageId, metadata),
+        onStreamMessageRequestDelta: ({ messageId, chunkInfo }) => emitStream(messageId, chunkInfo.messageContent, false),
+        onStreamMessageRequestComplete: ({ messageId }) => emitStream(messageId, '', true),
       }),
     );
     s.NCEngine.addUserHandler(
@@ -150,6 +152,27 @@ export function useChannelMessages(channelId: string | null) {
     };
   }, [channelId]);
 
+  /** Re-read the newest page and return true once `uid` is present (stream messages are not pushed live). */
+  const fetchUntil = useCallback(
+    async (uid: string): Promise<boolean> => {
+      if (!channelId || !sdk) return false;
+      const s = sdk;
+      const q = s.BaseChannel.createMessagesQuery({ channelIdentifier: new s.GroupChannelIdentifier(channelId), pageSize: 20, isAscending: false });
+      const r = await q.loadNextPage();
+      let found = false;
+      for (const m of r.data?.data ?? []) {
+        const cm = toChatMessage(m);
+        if (cm.uid === uid) found = true;
+        if (!seen.current.has(cm.uid)) {
+          seen.current.add(cm.uid);
+          setMessages((prev) => [...prev, cm].sort((a, b) => a.sentAt - b.sentAt));
+        }
+      }
+      return found;
+    },
+    [channelId],
+  );
+
   const sendText = useCallback(
     async (text: string, opts?: { needReceipt?: boolean }) => {
       if (!channelId || !sdk) throw new Error('not connected');
@@ -169,7 +192,7 @@ export function useChannelMessages(channelId: string | null) {
     [channelId],
   );
 
-  return { messages, status, sendText };
+  return { messages, status, sendText, fetchUntil };
 }
 
 /** Subscribe to online status for these users (best effort: presence may be off on the plan). */
@@ -210,5 +233,18 @@ export async function readByCount(channelId: string, messageId: string): Promise
     return r.isOk ? (r.data?.data?.length ?? 0) : null;
   } catch {
     return null;
+  }
+}
+
+const streamRequested = new Set<string>();
+/** Pull the rest of a stream message; chunks arrive through onStreamMessageRequestDelta. */
+export async function requestStream(m: ChatMessage): Promise<void> {
+  if (streamRequested.has(m.uid)) return;
+  streamRequested.add(m.uid);
+  try {
+    const r = await (m.raw as { requestStreamMessage?: () => Promise<{ isOk: boolean }> }).requestStreamMessage?.();
+    if (r && !r.isOk) streamRequested.delete(m.uid);
+  } catch {
+    streamRequested.delete(m.uid);
   }
 }

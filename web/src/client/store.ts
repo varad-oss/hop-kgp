@@ -90,3 +90,23 @@ export function usePresenceAvailable(): boolean {
     () => false,
   );
 }
+
+// Stream messages (the trip captain): accumulated text per message id.
+type StreamState = { text: string; done: boolean };
+const streams = new Map<string, StreamState>();
+const streamSubs = new Set<() => void>();
+export function emitStream(id: string, text: string, done: boolean) {
+  const prev = streams.get(id);
+  streams.set(id, { text: text || prev?.text || '', done: done || !!prev?.done });
+  streamSubs.forEach((f) => f());
+}
+export function useStream(id: string): StreamState | undefined {
+  return useSyncExternalStore(
+    (cb) => {
+      streamSubs.add(cb);
+      return () => void streamSubs.delete(cb);
+    },
+    () => streams.get(id),
+    () => undefined,
+  );
+}

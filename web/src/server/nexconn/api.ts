@@ -121,7 +121,7 @@ export function createNexconnApi(cfg: Config): NexconnApi {
         fromUserId,
         toChannelId: channelId,
         messageType: 'RC:StreamMsg',
-        content: JSON.stringify({ content, seq, complete, type: 'markdown', ...(messageId ? { messageId } : {}) }),
+        content: { content, seq, complete, ...(seq === 1 ? { type: 'text', user: { id: fromUserId, name: 'Trip captain' } } : {}), ...(messageId ? { messageId } : {}) },
       });
       return (j.result?.messageId ?? messageId) as string;
     },
