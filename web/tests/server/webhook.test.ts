@@ -8,9 +8,17 @@ const txt = (s: string) => JSON.stringify({ content: s });
 describe('verifyWebhook', () => {
   test('accepts a correct signature and rejects a wrong one', async () => {
     const h = { Nonce: '14314', Timestamp: '1585127132438' };
-    expect(await verifyWebhook({ ...h, Signature: '20b66b20b22a75d6bc47f7a7dd9d33fc16864057' }, 'testsecret')).toBe(true);
-    expect(await verifyWebhook({ ...h, Signature: 'deadbeef' }, 'testsecret')).toBe(false);
-    expect(await verifyWebhook({ ...h, Signature: '20B66B20B22A75D6BC47F7A7DD9D33FC16864057' }, 'testsecret')).toBe(true);
+    const now = 1585127132438;
+    expect(await verifyWebhook({ ...h, Signature: '20b66b20b22a75d6bc47f7a7dd9d33fc16864057' }, 'testsecret', now)).toBe(true);
+    expect(await verifyWebhook({ ...h, Signature: 'deadbeef' }, 'testsecret', now)).toBe(false);
+    expect(await verifyWebhook({ ...h, Signature: '20B66B20B22A75D6BC47F7A7DD9D33FC16864057' }, 'testsecret', now)).toBe(true);
+  });
+
+  test('rejects an empty secret and stale or non-numeric timestamps (replay protection)', async () => {
+    const h = { Nonce: '14314', Timestamp: '1585127132438', Signature: '20b66b20b22a75d6bc47f7a7dd9d33fc16864057' };
+    expect(await verifyWebhook(h, '', 1585127132438)).toBe(false);
+    expect(await verifyWebhook(h, 'testsecret', 1585127132438 + 6 * 60_000)).toBe(false);
+    expect(await verifyWebhook({ ...h, Timestamp: 'abc' }, 'testsecret', 1585127132438)).toBe(false);
   });
 });
 

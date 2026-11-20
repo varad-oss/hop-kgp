@@ -42,7 +42,7 @@ export async function createProposal(db: Db, nx: NexconnApi, user: UserRow, p: P
   if (!has[0]) throw new HttpError(403, 'not_in_lobby');
 
   const vehicle = VEHICLES[p.vehicle];
-  const meetingPoint = (p.meetingPoint ?? '').trim();
+  const meetingPoint = String(p.meetingPoint ?? '').replace(/[\u0000-\u001f\u007f]/g, '').trim();
   if (!vehicle || !Number.isInteger(p.seats) || p.seats < 2 || p.seats > vehicle.seats) throw new HttpError(400, 'bad_request');
   if (meetingPoint.length < 1 || meetingPoint.length > 60) throw new HttpError(400, 'bad_request');
   if (!Number.isInteger(p.totalFare) || p.totalFare < 1 || p.totalFare > 20000) throw new HttpError(400, 'bad_request');
@@ -74,13 +74,21 @@ export async function createProposal(db: Db, nx: NexconnApi, user: UserRow, p: P
     seats: p.seats,
     isDemo: user.is_demo,
   };
-  const messageId = await nx.sendGroupMessage({
-    fromUserId: user.nexconn_id,
-    channelId: lobby.channel_id,
-    messageType: CARD_PROPOSAL,
-    content: card,
-    metadata: { status: meta.status, inCount: String(meta.inCount), bags: String(meta.bags), voters: meta.voters.join(',') },
-  });
+  let messageId: string;
+  try {
+    messageId = await nx.sendGroupMessage({
+      fromUserId: user.nexconn_id,
+      channelId: lobby.channel_id,
+      messageType: CARD_PROPOSAL,
+      content: card,
+      metadata: { status: meta.status, inCount: String(meta.inCount), bags: String(meta.bags), voters: meta.voters.join(',') },
+    });
+  } catch (e) {
+    // Never leave a plan that exists in the DB but can never update live.
+    await db.query('delete from hop.votes where proposal_id = $1', [id]);
+    await db.query('delete from hop.proposals where id = $1', [id]);
+    throw e;
+  }
   await db.query('update hop.proposals set message_id = $2 where id = $1', [id, messageId]);
   return { proposalId: id };
 }
@@ -94,6 +102,11 @@ export async function joinProposal(db: Db, nx: NexconnApi, user: UserRow, propos
     now.toISOString(),
   ]))[0];
   assertOk(r.result);
+  if (r.result === 'already' && r.pod_id) {
+    // A retry after a Nexconn blip: make sure the member really is in the live pod channel.
+    const st = await ensurePodMaterialized(db, nx, r.pod_id);
+    if (st.status === 'live') await nx.joinGroup(`p${r.pod_id.replace(/-/g, '')}`, [user.nexconn_id]);
+  }
   if (r.result === 'joined') {
     await mirrorProposal(db, nx, proposalId);
     if (r.moved_from) await mirrorProposal(db, nx, r.moved_from);
@@ -125,9 +138,9 @@ export async function leaveProposal(db: Db, nx: NexconnApi, user: UserRow, propo
   return { result: r.result, inCount: r.in_count, podId: r.pod_id };
 }
 
-export async function lockProposal(db: Db, nx: NexconnApi, user: UserRow, proposalId: string) {
+export async function lockProposal(db: Db, nx: NexconnApi, user: UserRow, proposalId: string, now: Date = new Date()) {
   await proposalAndLobby(db, proposalId, user);
-  const r = (await db.query<{ result: string; pod_id: string | null }>('select * from hop.lock_proposal($1,$2)', [proposalId, user.id]))[0];
+  const r = (await db.query<{ result: string; pod_id: string | null }>('select * from hop.lock_proposal($1,$2,$3)', [proposalId, user.id, now.toISOString()]))[0];
   assertOk(r.result);
   if (r.pod_id) {
     await ensurePodMaterialized(db, nx, r.pod_id);

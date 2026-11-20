@@ -1,9 +1,22 @@
 import { containsPhone } from '@/domain/phone';
 import { sha1Hex } from './nexconn/sign';
 
-export async function verifyWebhook(h: { Nonce: string; Timestamp: string; Signature: string }, appSecret: string): Promise<boolean> {
+const MAX_SKEW_MS = 5 * 60_000;
+
+export async function verifyWebhook(
+  h: { Nonce: string; Timestamp: string; Signature: string },
+  appSecret: string,
+  now: number = Date.now(),
+): Promise<boolean> {
+  if (!appSecret) return false;
+  const ts = Number(h.Timestamp);
+  if (!Number.isFinite(ts) || Math.abs(now - ts) > MAX_SKEW_MS) return false;
   const expected = await sha1Hex(appSecret + h.Nonce + h.Timestamp);
-  return expected === h.Signature.toLowerCase();
+  const given = h.Signature.toLowerCase();
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
 }
 
 const LOBBY_CHANNEL = /^l[0-9a-f]{32}$/;

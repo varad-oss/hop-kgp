@@ -9,7 +9,7 @@ export function LiveCounter() {
       .then((j) => j && setS(j))
       .catch(() => {});
   }, []);
-  if (!s || s.students === 0) return null;
+  if (!s || s.students < 10) return null; // only show social proof once it is real
   return (
     <p className="text-sm font-bold num">
       {s.students} KGPians on Hop{s.tripsLocked > 0 ? `, ${s.tripsLocked} trip${s.tripsLocked === 1 ? '' : 's'} locked` : ''}

@@ -157,3 +157,16 @@ describe('lobbySummary carries plans and intents from the database', () => {
     expect((await lobbySummary(w.db, w.lobbyId, w.users[2])).proposals).toHaveLength(0);
   });
 });
+
+describe('listMyTrips hides trips that are long past', () => {
+  test('keeps today and yesterday, drops older lobbies', async () => {
+    const db = await createTestDb();
+    const nx = createFakeNexconn();
+    const riya = await user(db, 'riya');
+    const early = new Date('2026-11-19T10:00:00Z');
+    await postIntent(db, nx, riya, { ...trip, date: '2026-11-19' }, early);
+    await postIntent(db, nx, riya, { ...trip, date: '2026-11-26' }, early);
+    const later = new Date('2026-11-27T10:00:00Z'); // 26th is yesterday, 19th is a week old
+    expect((await listMyTrips(db, riya, later)).map((t) => t.date)).toEqual(['2026-11-26']);
+  });
+});

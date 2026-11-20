@@ -23,8 +23,22 @@ export function isKgpianEmail(email: string | undefined | null): boolean {
 }
 
 export function safeNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return '/home';
-  return next;
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return '/home';
+  // Browsers strip tabs, newlines and spaces inside URLs, turning "/\t/evil.com" into "//evil.com".
+  if (/[\u0000-\u0020\u007f\\]/.test(next)) return '/home';
+  try {
+    const u = new URL(next, 'https://hop.invalid');
+    if (u.origin !== 'https://hop.invalid') return '/home';
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return '/home';
+  }
+}
+
+/** Server-side gate: only @kgpian Google accounts or anonymous demo sessions may use the API. */
+export function assertAllowedUser(u: { email: string | undefined | null; isAnonymous: boolean }): void {
+  if (u.isAnonymous) return;
+  if (!isKgpianEmail(u.email)) throw new HttpError(403, 'not_kgpian');
 }
 
 export const demoScope = (u: Pick<UserRow, 'id' | 'demo_group'>): string => u.demo_group ?? u.id;

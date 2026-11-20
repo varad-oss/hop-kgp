@@ -152,3 +152,53 @@ describe('after lock', () => {
     expect(await leave(w.db, w.prop, w.users[0])).toMatchObject({ result: 'left', in_count: 0 });
   });
 });
+
+
+describe('cross-proposal integrity (migration 0003)', () => {
+  test('joining a locked pod clears the user\'s votes on other open proposals and reports moved_from', async () => {
+    const s = await seed(4);
+    await join(s.db, s.prop, s.users[0]);
+    await join(s.db, s.prop, s.users[1]);
+    await lock(s.db, s.prop, s.users[0]);
+    const other = await propose(s.db, s.lobby, s.users[3]);
+    await join(s.db, other, s.users[2]);
+    const r = await join(s.db, s.prop, s.users[2]);
+    expect(r).toMatchObject({ result: 'joined', moved_from: other });
+    const [c] = await s.db.query<{ n: string }>(`select count(*)::text n from hop.votes where proposal_id = $1 and user_id = $2`, [other, s.users[2]]);
+    expect(c.n).toBe('0');
+  });
+
+  test('lock never puts someone who is already in another pod of this lobby into a second pod', async () => {
+    const s = await seed(5);
+    await join(s.db, s.prop, s.users[0]);
+    await join(s.db, s.prop, s.users[1]);
+    await lock(s.db, s.prop, s.users[0]);
+    const other = await propose(s.db, s.lobby, s.users[3]);
+    for (const u of [3, 4, 2]) await s.db.query(`insert into hop.votes(proposal_id, user_id) values ($1,$2)`, [other, s.users[u]]);
+    await s.db.query(`insert into hop.pod_members(pod_id, user_id, status) select pd.id, $2, 'in' from hop.pods pd where pd.proposal_id = $1`, [s.prop, s.users[2]]);
+    const l = await lock(s.db, other, s.users[3]);
+    expect(l.result).toBe('locked');
+    const members = await s.db.query<{ user_id: string }>(`select user_id from hop.pod_members where pod_id = $1 and status = 'in'`, [l.pod_id]);
+    expect(members.map((m) => m.user_id).sort()).toEqual([s.users[3], s.users[4]].sort());
+    const [n] = await s.db.query<{ n: string }>(`select count(*)::text n from hop.pod_members where user_id = $1 and status = 'in'`, [s.users[2]]);
+    expect(n.n).toBe('1');
+  });
+
+  test('lock fails with too_few when removing people already in another pod leaves fewer than two', async () => {
+    const s = await seed(4);
+    await join(s.db, s.prop, s.users[0]);
+    await join(s.db, s.prop, s.users[1]);
+    await lock(s.db, s.prop, s.users[0]);
+    const other = await propose(s.db, s.lobby, s.users[3]);
+    for (const u of [3, 1]) await s.db.query(`insert into hop.votes(proposal_id, user_id) values ($1,$2)`, [other, s.users[u]]);
+    expect((await lock(s.db, other, s.users[3])).result).toBe('too_few');
+  });
+
+  test('a stale plan cannot be locked after its departure time', async () => {
+    const s = await seed(3);
+    await join(s.db, s.prop, s.users[0]);
+    await join(s.db, s.prop, s.users[1]);
+    const r = (await s.db.query<{ result: string }>(`select * from hop.lock_proposal($1,$2,$3)`, [s.prop, s.users[0], DEPART]))[0];
+    expect(r.result).toBe('departed');
+  });
+});

@@ -42,6 +42,14 @@ describe('createProposal', () => {
   });
 });
 
+describe('createProposal sanitizes the meeting point', () => {
+  test('strips control characters before storing', async () => {
+    const w = await makeWorld(2);
+    const { proposalId } = await createProposal(w.db, w.nx, w.users[0], { ...input(w), meetingPoint: 'Gate\r\n 1\u0000' }, NOW);
+    expect((await w.db.query<{ meeting_point: string }>('select meeting_point from hop.proposals where id = $1', [proposalId]))[0].meeting_point).toBe('Gate 1');
+  });
+});
+
 describe('joinProposal', () => {
   test('a second user joining mirrors inCount 2 and both voters onto the card', async () => {
     const { w, proposalId } = await worldWithProposal();
@@ -139,5 +147,31 @@ describe('after lock', () => {
     await joinProposal(w.db, w.nx, w.users[1], proposalId, NOW);
     await leaveProposal(w.db, w.nx, w.users[1], proposalId, NOW);
     expect(calls(w, 'setMessageMetadata').at(-1)!.args.metadata).toMatchObject({ inCount: '1', voters: w.users[0].nexconn_id });
+  });
+});
+
+describe('self-healing against Nexconn blips', () => {
+  test('if the proposal card cannot be sent, the plan is rolled back rather than left invisible', async () => {
+    const w = await makeWorld(2);
+    w.nx.failNext('sendGroupMessage');
+    await expect(createProposal(w.db, w.nx, w.users[0], input(w), NOW)).rejects.toBeTruthy();
+    expect(await w.db.query('select 1 from hop.proposals where message_id is null')).toHaveLength(0);
+    expect(await w.db.query('select 1 from hop.votes')).toHaveLength(0);
+  });
+
+  test('retrying a join that already counted re-adds the user to the live pod channel', async () => {
+    const { w, proposalId } = await (async () => {
+      const w = await makeWorld(4);
+      await w.db.query('delete from hop.proposals where id = $1', [w.proposalId]);
+      const { proposalId } = await createProposal(w.db, w.nx, w.users[0], input(w), NOW);
+      return { w, proposalId };
+    })();
+    await joinProposal(w.db, w.nx, w.users[1], proposalId, NOW);
+    await lockProposal(w.db, w.nx, w.users[0], proposalId, NOW);
+    w.nx.failNext('joinGroup');
+    await expect(joinProposal(w.db, w.nx, w.users[2], proposalId, NOW)).rejects.toBeTruthy(); // DB joined, Nexconn blipped
+    const before = calls(w, 'joinGroup').length;
+    expect((await joinProposal(w.db, w.nx, w.users[2], proposalId, NOW)).result).toBe('already');
+    expect(calls(w, 'joinGroup').length).toBe(before + 1);
   });
 });

@@ -1,9 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CARD_INTENT, CARD_PROPOSAL, CARD_TICKET } from '@/domain/cards';
-import { emitMessage, emitMetadata, getConnStatus, onChannelMessage, onMetadata, setConnStatus, setOnline, type ChatMessage } from './store';
+import { emitMessage, emitMetadata, getConnStatus, onChannelMessage, onMetadata, setConnStatus, setOnline, setPresenceOk, type ChatMessage } from './store';
 
-export { useConnection, onMetadata, usePresence } from './store';
+export { useConnection, onMetadata, usePresence, usePresenceAvailable } from './store';
 export type { ChatMessage } from './store';
 
 type Sdk = typeof import('@nexconn/chat');
@@ -179,9 +179,10 @@ export async function subscribePresence(userIds: string[]): Promise<void> {
     const s = sdk!;
     const ids = userIds.slice(0, 200);
     if (!ids.length) return;
-    await s.NCEngine.userModule.subscribeEvent({ userIds: ids, subscribeType: s.SubscribeType.ONLINE_STATUS });
+    const r = await s.NCEngine.userModule.subscribeEvent({ userIds: ids, subscribeType: s.SubscribeType.ONLINE_STATUS });
+    setPresenceOk(r.isOk);
   } catch {
-    /* presence is optional */
+    setPresenceOk(false); // presence is optional; the UI hides the dots when it is unavailable
   }
 }
 

@@ -31,6 +31,14 @@ describe('ticketIcs', () => {
   });
 });
 
+describe('ticketIcs hardening', () => {
+  test('control characters cannot inject extra calendar properties; commas and semicolons are escaped', () => {
+    const ics = ticketIcs({ podId: 'p1', departAt: '2026-11-26T01:00:00Z', destinationLabel: 'Howrah', meetingPoint: 'Gate\r\nURL:http://evil.example;x,y' });
+    expect(ics.split('\r\n').some((l) => l.startsWith('URL:'))).toBe(false);
+    expect(ics).toContain('LOCATION:GateURL:http://evil.example\\;x\\,y');
+  });
+});
+
 describe('parseProposalMeta', () => {
   test('parses metadata strings', () => {
     expect(parseProposalMeta({ status: 'open', inCount: '3', bags: '4', voters: 'ua,ub,uc' })).toEqual({

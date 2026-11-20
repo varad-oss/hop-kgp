@@ -72,3 +72,21 @@ export function usePresence(): Set<string> {
     () => new Set<string>(),
   );
 }
+
+let presenceOk = false;
+const presenceOkSubs = new Set<() => void>();
+export function setPresenceOk(v: boolean) {
+  if (v === presenceOk) return;
+  presenceOk = v;
+  presenceOkSubs.forEach((f) => f());
+}
+export function usePresenceAvailable(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      presenceOkSubs.add(cb);
+      return () => void presenceOkSubs.delete(cb);
+    },
+    () => presenceOk,
+    () => false,
+  );
+}

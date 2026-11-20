@@ -28,6 +28,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
   const [leaveError, setLeaveError] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [seenBy, setSeenBy] = useState<number | null>(null);
+  const [meeraGone, setMeeraGone] = useState(false);
 
   const load = useCallback(() => {
     api.get<PodData>(`/api/pods/${podId}`).then(setPod).catch((e) => setFailed(e instanceof ApiError ? e.status : 0));
@@ -46,7 +47,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
 
   useEffect(() => {
     try {
-      if (pod && pod.status !== 'pending' && !localStorage.getItem(`hop:fb:${podId}`)) setShowFeedback(true);
+      if (pod && pod.status !== 'pending' && !pod.ticket.isDemo && !localStorage.getItem(`hop:fb:${podId}`)) setShowFeedback(true);
     } catch {
       /* storage unavailable */
     }
@@ -55,10 +56,24 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
   const live = pod && pod.status !== 'pending';
   const { messages, status, sendText } = useChannelMessages(live ? pod.channelId : null);
 
-  const latestTicket = useMemo(() => {
-    const t = [...messages].reverse().find((m) => m.type === 'Hop:Ticket');
-    return (t?.content as HopTicket | undefined) ?? pod?.ticket;
-  }, [messages, pod]);
+  // The ticket always comes from the server, never from a chat message, so nobody can post a fake one.
+  const latestTicket = pod?.ticket;
+  const ticketMsgs = useMemo(() => messages.filter((m) => m.type === 'Hop:Ticket').length, [messages]);
+  useEffect(() => {
+    if (ticketMsgs > 0) load();
+  }, [ticketMsgs, load]);
+
+  // Keep the newest message in view, and bring it into view when I send one.
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const textCount = useMemo(() => messages.filter((m) => m.type === 'RC:TxtMsg').length, [messages]);
+  const firstLoad = useRef(true);
+  useEffect(() => {
+    if (firstLoad.current) {
+      firstLoad.current = false;
+      return;
+    }
+    bottomRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [textCount]);
 
   // Mark others' messages read, and show how many have read my latest message.
   const marked = useRef(new Set<string>());
@@ -134,7 +149,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
     );
 
   const archived = pod.status === 'archived';
-  const ticket = latestTicket ?? pod.ticket;
+  const ticket = pod.ticket;
   const lastMineUid = lastMine?.uid;
 
   return (
@@ -149,8 +164,16 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
         <TicketCard ticket={ticket} me={me.nexconnId} onCalendar={downloadIcs} />
         {ticket.isDemo && (
           <div className="mx-3">
-            <Button variant="ghost" className="w-full" onClick={() => void api.send('POST', '/api/demo/leave').then(load)}>
-              Demo: Meera leaves
+            <Button
+              variant="ghost"
+              className="w-full"
+              disabled={meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera')}
+              onClick={() => {
+                setMeeraGone(true);
+                void api.send('POST', '/api/demo/leave').then(load);
+              }}
+            >
+              {meeraGone || !ticket.members.some((m) => m.name === 'Demo · Meera') ? 'Meera has left. The fare re-split.' : 'Demo: Meera leaves'}
             </Button>
           </div>
         )}
@@ -167,7 +190,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
             }}
           />
         )}
-        {!showFeedback && <ReturnTripPrompt destination={ticket.destination} />}
+        {!showFeedback && !ticket.isDemo && <ReturnTripPrompt destination={ticket.destination} />}
         {archived && <p className="mx-3 rounded-xl bg-surface-2 p-3 text-sm text-muted">This trip has ended. The chat is read-only.</p>}
         {status === 'loading' && <Spinner label="Loading messages" />}
         {status === 'error' && <ErrorNote>Messages didn’t load. Reload to try again.</ErrorNote>}
@@ -185,6 +208,7 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
       {!archived && (
         <>

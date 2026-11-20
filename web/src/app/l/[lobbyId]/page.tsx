@@ -3,7 +3,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, errorText } from '@/client/api';
 import { markLinkOpen } from '@/client/funnel';
-import { onMetadata, subscribePresence, useChannelMessages, usePresence } from '@/client/nexconn';
+import { onMetadata, subscribePresence, useChannelMessages, usePresence, usePresenceAvailable } from '@/client/nexconn';
 import { shareProposal } from '@/client/share';
 import { AuthGate } from '@/components/AuthGate';
 import { Composer } from '@/components/Composer';
@@ -11,7 +11,7 @@ import { ConnectionBanner } from '@/components/ConnectionBanner';
 import { IntentCard, ProposalCard, TextBubble } from '@/components/cards';
 import { ProfileModal } from '@/components/ProfileModal';
 import { ProposeSheet } from '@/components/ProposeSheet';
-import { Button, EmptyState, Shell, Spinner, TopBar } from '@/components/ui';
+import { Button, EmptyState, Shell, Sheet, Spinner, TopBar } from '@/components/ui';
 import { parseProposalMeta, type HopIntent, type HopProposal, type ProposalMeta } from '@/domain/cards';
 import { DESTINATIONS, WINDOWS, type DestKey, type Direction, type WindowKey } from '@/domain/catalog';
 import { formatTime, formatTripDate, lobbyTitle, summaryLine } from '@/domain/copy';
@@ -19,14 +19,14 @@ import { fareLine } from '@/domain/fare';
 import type { Me } from '@/client/useMe';
 
 type Summary = {
-  lobby: { id: string; destination: DestKey; direction: Direction; date: string; channelId: string };
+  lobby: { id: string; destination: DestKey; direction: Direction; date: string; channelId: string; isDemo: boolean };
   going: number;
   windows: Partial<Record<WindowKey, number>>;
   openProposals: number;
   lockedProposals: number;
   members: { nexconnId: string; name: string }[];
   myIntent: { window: WindowKey; bags: number } | null;
-  proposals: { proposal: HopProposal; meta: ProposalMeta }[];
+  proposals: { proposal: HopProposal; meta: ProposalMeta; messageId: string | null }[];
   intents: HopIntent[];
 };
 
@@ -42,6 +42,8 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
   const channelId = summary?.lobby.channelId ?? null;
   const { messages, status, sendText } = useChannelMessages(channelId);
   const online = usePresence();
+  const presenceOn = usePresenceAvailable();
+  const [confirmJoin, setConfirmJoin] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profileFor, setProfileFor] = useState<null | (() => void)>(null);
@@ -92,15 +94,15 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
     [refresh, router],
   );
 
-  // Shared card link: ?join=<proposalId> joins once the lobby is ready.
-  const joined = useRef(false);
+  // Shared card link: ?join=<proposalId> asks for one confirming tap before sharing your number with strangers.
+  const askedJoin = useRef(false);
   useEffect(() => {
     const id = params.get('join');
-    if (id && summary && summary.myIntent && !joined.current) {
-      joined.current = true;
-      void act(id, 'join');
+    if (id && summary?.myIntent && !askedJoin.current && summary.proposals.some((p) => p.proposal.proposalId === id)) {
+      askedJoin.current = true;
+      setConfirmJoin(id);
     }
-  }, [params, summary, act]);
+  }, [params, summary]);
 
   if (loadError)
     return (
@@ -124,10 +126,12 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
     });
   }
 
-  const seenIntents = new Set(messages.filter((m) => m.type === 'Hop:Intent').map((m) => (m.content as HopIntent).intentId));
-  const seenProposals = new Set(messages.filter((m) => m.type === 'Hop:Proposal').map((m) => (m.content as HopProposal).proposalId));
-  const fallbackIntents = status === 'loading' ? [] : summary.intents.filter((i) => !seenIntents.has(i.intentId));
-  const fallbackProposals = status === 'loading' ? [] : summary.proposals.filter((p) => !seenProposals.has(p.proposal.proposalId));
+  // Cards come only from the database, never from chat messages, so a forged message cannot spoof or break the room.
+  const liveMeta = new Map(messages.map((m) => [m.uid, m.metadata] as const));
+  function metaFor(p: { meta: ProposalMeta; messageId: string | null }): ProposalMeta {
+    const live = p.messageId ? liveMeta.get(p.messageId) : undefined;
+    return live && Object.keys(live).length ? parseProposalMeta(live) : p.meta;
+  }
 
   function renderProposal(key: string, p: HopProposal, meta: ProposalMeta) {
     return (
@@ -162,11 +166,13 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
       <ul className="flex gap-3 overflow-x-auto border-b border-line px-4 py-2 text-sm" aria-label="People in this room">
         {summary.members.map((m) => (
           <li key={m.nexconnId} className="flex shrink-0 items-center gap-1.5">
-            <span
-              role="img"
-              aria-label={m.nexconnId === me.nexconnId || online.has(m.nexconnId) ? 'online' : 'offline or unknown'}
-              className={`h-2.5 w-2.5 rounded-full ${m.nexconnId === me.nexconnId || online.has(m.nexconnId) ? 'bg-go' : 'border border-muted'}`}
-            />
+            {presenceOn && (
+              <span
+                role="img"
+                aria-label={m.nexconnId === me.nexconnId || online.has(m.nexconnId) ? 'online' : 'offline'}
+                className={`h-2.5 w-2.5 rounded-full ${m.nexconnId === me.nexconnId || online.has(m.nexconnId) ? 'bg-go' : 'border border-muted'}`}
+              />
+            )}
             {m.nexconnId === me.nexconnId ? 'You' : m.name.replace('Demo · ', '')}
           </li>
         ))}
@@ -185,29 +191,21 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
             Check your connection. Campus WiFi sometimes blocks chat; mobile data usually works.
           </EmptyState>
         )}
-        {status === 'ready' && messages.length === 0 && (
-          <EmptyState title="You’re the first one here">Share this room so others find it, or propose a plan to get things moving.</EmptyState>
+        {summary.lobby.isDemo && (
+          <p className="mx-3 rounded-xl bg-signal px-3 py-2 text-sm font-bold text-on-signal">
+            Demo room: tap I’m in on the plan, then Lock trip. The other travellers are labelled Demo.
+          </p>
         )}
-        {fallbackIntents.map((i) => (
+        {summary.intents.map((i) => (
           <IntentCard key={`i-${i.intentId}`} intent={{ ...i, window: i.window in WINDOWS ? i.window : 'w1' }} mine={i.nexconnId === me.nexconnId} />
         ))}
-        {fallbackProposals.map(({ proposal: p, meta }) => renderProposal(`p-${p.proposalId}`, p, meta))}
-        {messages.map((m) => {
-          if (m.type === 'Hop:Intent') {
-            const i = m.content as HopIntent;
-            return <IntentCard key={m.uid} intent={{ ...i, window: i.window in WINDOWS ? i.window : 'w1' }} mine={i.nexconnId === me.nexconnId} />;
-          }
-          if (m.type === 'Hop:Proposal') {
-            const p = m.content as HopProposal;
-            const dbMeta = summary.proposals.find((x) => x.proposal.proposalId === p.proposalId)?.meta;
-            const live = Object.keys(m.metadata).length ? parseProposalMeta(m.metadata) : dbMeta ?? parseProposalMeta({});
-            return renderProposal(m.uid, p, live);
-          }
-          if (m.type === 'RC:TxtMsg') {
-            const name = summary.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
-            return <TextBubble key={m.uid} text={textOf(m.content)} mine={m.senderId === me.nexconnId || m.mine} sender={name} />;
-          }
-          return null;
+        {summary.proposals.map((p) => renderProposal(`p-${p.proposal.proposalId}`, p.proposal, metaFor(p)))}
+        {status === 'ready' && summary.proposals.length === 0 && summary.intents.length <= 1 && (
+          <EmptyState title="You’re the first one here">Share this room so others find it, or propose a plan to get things moving.</EmptyState>
+        )}
+        {messages.filter((m) => m.type === 'RC:TxtMsg').map((m) => {
+          const name = summary.members.find((x) => x.nexconnId === m.senderId)?.name ?? 'Someone';
+          return <TextBubble key={m.uid} text={textOf(m.content)} mine={m.senderId === me.nexconnId || m.mine} sender={name} />;
         })}
         <div ref={bottomRef} />
       </div>
@@ -233,6 +231,22 @@ function Lobby({ lobbyId, me }: { lobbyId: string; me: Me }) {
           setProfileFor(() => () => setProposeOpen(true));
         }}
       />
+      <Sheet open={!!confirmJoin} onClose={() => setConfirmJoin(null)} title="Join this plan?">
+        <p className="mb-4 text-muted">You’ll be counted in. Your hall and number are shared with everyone in the trip once it locks.</p>
+        <div className="flex gap-2">
+          <Button
+            variant="signal"
+            onClick={() => {
+              const id = confirmJoin;
+              setConfirmJoin(null);
+              if (id) void act(id, 'join');
+            }}
+          >
+            I’m in
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirmJoin(null)}>Not now</Button>
+        </div>
+      </Sheet>
       <ProfileModal
         open={!!profileFor}
         onClose={() => setProfileFor(null)}

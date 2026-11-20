@@ -19,6 +19,11 @@ function tomorrowIst(now: Date): string {
   return istToday(new Date(now.getTime() + 24 * 3600_000));
 }
 
+export async function demoExists(db: Db, user: UserRow): Promise<boolean> {
+  const rows = await db.query(`select 1 from hop.lobbies where is_demo and demo_owner = $1 and destination = 'HWH' and direction = 'out' limit 1`, [demoScope(user)]);
+  return rows.length > 0;
+}
+
 export async function startDemo(db: Db, nx: NexconnApi, user: UserRow, now: Date = new Date()): Promise<{ lobbyId: string }> {
   if (!user.is_demo) throw new HttpError(403, 'demo_only');
   const scope = demoScope(user);

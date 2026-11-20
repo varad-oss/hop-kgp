@@ -1,5 +1,5 @@
 import { createSupabaseServer } from '@/lib/supabase/server';
-import { ensureUser, type UserRow } from './auth';
+import { assertAllowedUser, ensureUser, type UserRow } from './auth';
 import { getDb } from './db';
 import { HttpError } from './http';
 
@@ -15,6 +15,7 @@ export async function requireUser(): Promise<UserRow> {
   const u = data.user;
   if (error || !u) throw new HttpError(401, 'unauthorized');
   const anon = !!u.is_anonymous;
+  assertAllowedUser({ email: u.email, isAnonymous: anon });
   return ensureUser(getDb(), {
     authId: u.id,
     email: u.email ?? null,

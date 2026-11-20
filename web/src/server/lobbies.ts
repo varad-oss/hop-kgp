@@ -134,7 +134,7 @@ export type LobbySummary = {
   members: { nexconnId: string; name: string }[];
   myIntent: { window: WindowKey; bags: number } | null;
   /** Open and locked plans straight from the database, so late joiners see them even without chat history. */
-  proposals: { proposal: HopProposal; meta: ProposalMeta }[];
+  proposals: { proposal: HopProposal; meta: ProposalMeta; messageId: string | null }[];
   intents: HopIntent[];
 };
 
@@ -154,8 +154,8 @@ export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Pr
   );
   const n = (s: string) => parseInt(counts.find((c) => c.status === s)?.n ?? '0', 10);
   const mine = intents.find((r) => r.user_id === viewer.id);
-  const props = await db.query<{ id: string; creator_name: string; depart_at: string; meeting_point: string; vehicle: HopProposal['vehicle']; total_fare: number; seats: number }>(
-    `select pr.id, u.name as creator_name, to_char(pr.depart_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as depart_at,
+  const props = await db.query<{ id: string; message_id: string | null; creator_name: string; depart_at: string; meeting_point: string; vehicle: HopProposal['vehicle']; total_fare: number; seats: number }>(
+    `select pr.id, pr.message_id, u.name as creator_name, to_char(pr.depart_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as depart_at,
             pr.meeting_point, pr.vehicle, pr.total_fare, pr.seats
        from hop.proposals pr join hop.users u on u.id = pr.creator_id
       where pr.lobby_id = $1 and pr.status in ('open','locked') order by pr.created_at`,
@@ -175,6 +175,7 @@ export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Pr
         isDemo: lobby.is_demo,
       } satisfies HopProposal,
       meta: await proposalMeta(db, p.id),
+      messageId: p.message_id,
     })),
   );
   return {
@@ -193,6 +194,7 @@ export async function lobbySummary(db: Db, lobbyId: string, viewer: UserRow): Pr
 export async function listMyTrips(
   db: Db,
   user: UserRow,
+  now: Date = new Date(),
 ): Promise<{ lobbyId: string; title: string; date: string; podId: string | null; podStatus: string | null }[]> {
   const rows = await db.query<{ lobby_id: string; destination: DestKey; direction: Direction; travel_date: string; pod_id: string | null; pod_status: string | null }>(
     `select distinct on (l.id) l.id as lobby_id, l.destination, l.direction, to_char(l.travel_date, 'YYYY-MM-DD') as travel_date, pd.id as pod_id, pd.status as pod_status
@@ -201,9 +203,9 @@ export async function listMyTrips(
        left join hop.proposals pr on pr.lobby_id = l.id and pr.status = 'locked'
        left join hop.pods pd on pd.proposal_id = pr.id and exists (
          select 1 from hop.pod_members pm where pm.pod_id = pd.id and pm.user_id = $1 and pm.status = 'in')
-      where i.user_id = $1
+      where i.user_id = $1 and l.travel_date >= $2::date
       order by l.id, pd.id nulls last`,
-    [user.id],
+    [user.id, new Date(new Date(istToday(now) + 'T00:00:00Z').getTime() - 86400_000).toISOString().slice(0, 10)],
   );
   rows.sort((a, b) => a.travel_date.localeCompare(b.travel_date) || a.lobby_id.localeCompare(b.lobby_id));
   return rows.map((r) => ({

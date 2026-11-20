@@ -1,3 +1,7 @@
+function text(v: string): string {
+  return v.replace(/[\u0000-\u001f\u007f]/g, '').replace(/[\\;,]/g, (c) => `\\${c}`);
+}
+
 function stamp(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
@@ -13,8 +17,8 @@ export function ticketIcs(t: { podId: string; departAt: string; destinationLabel
     `DTSTAMP:${stamp(new Date().toISOString())}`,
     `DTSTART:${stamp(t.departAt)}`,
     `DTEND:${stamp(end)}`,
-    `SUMMARY:Hop trip to ${t.destinationLabel}`,
-    `LOCATION:${t.meetingPoint}`,
+    `SUMMARY:Hop trip to ${text(t.destinationLabel)}`,
+    `LOCATION:${text(t.meetingPoint)}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');

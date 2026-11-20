@@ -86,3 +86,14 @@ describe('the demo story', () => {
     expect(t.members.map((m) => m.name).sort()).toEqual(['Demo · Aarav', 'guest']);
   });
 });
+
+import { demoExists } from '@/server/demo';
+describe('demoExists', () => {
+  test('false before the first demo, true after', async () => {
+    const db = await createTestDb();
+    const g = await guest(db);
+    expect(await demoExists(db, g)).toBe(false);
+    await startDemo(db, createFakeNexconn(), g, NOW);
+    expect(await demoExists(db, g)).toBe(true);
+  });
+});

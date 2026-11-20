@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { createTestDb } from '../db/harness';
 import { HttpError, toResponse } from '@/server/http';
 import { lobbyChannelId, nexconnUserId, podChannelId } from '@/server/ids';
-import { demoScope, ensureUser, handleCallback, isKgpianEmail, safeNext, updateProfile } from '@/server/auth';
+import { assertAllowedUser, demoScope, ensureUser, handleCallback, isKgpianEmail, safeNext, updateProfile } from '@/server/auth';
 
 const UUID = '3f2a9c1e-7b4d-4e8a-9a10-0c5d6e7f8a9b';
 
@@ -29,6 +29,16 @@ describe('safeNext', () => {
     expect(safeNext('https://evil.com')).toBe('/home');
     expect(safeNext('/\\evil.com')).toBe('/home');
     expect(safeNext(null)).toBe('/home');
+  });
+  test('rejects control characters that browsers strip into a protocol-relative URL', () => {
+    for (const bad of ['/\t/evil.com', '/\n/evil.com', '/\r/evil.com', '/ /evil.com', '/\u0000/x']) expect(safeNext(bad)).toBe('/home');
+    expect(safeNext('/new?d=HWH&date=2026-11-26&then=join:abc')).toBe('/new?d=HWH&date=2026-11-26&then=join:abc');
+  });
+  test('assertAllowedUser: only kgpian accounts or anonymous demo sessions', () => {
+    expect(() => assertAllowedUser({ email: 'a@kgpian.iitkgp.ac.in', isAnonymous: false })).not.toThrow();
+    expect(() => assertAllowedUser({ email: undefined, isAnonymous: true })).not.toThrow();
+    expect(() => assertAllowedUser({ email: 'x@gmail.com', isAnonymous: false })).toThrowError(expect.objectContaining({ status: 403, error: 'not_kgpian' }));
+    expect(() => assertAllowedUser({ email: undefined, isAnonymous: false })).toThrowError(expect.objectContaining({ status: 403 }));
   });
 });
 

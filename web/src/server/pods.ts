@@ -94,12 +94,6 @@ export async function ensurePodMaterialized(db: Db, nx: NexconnApi, podId: strin
   const { channel_id, proposal_id } = leased[0];
   let ticketId = leased[0].ticket_message_id;
   try {
-    const ids = (
-      await db.query<{ nexconn_id: string }>(
-        `select u.nexconn_id from hop.pod_members pm join hop.users u on u.id = pm.user_id where pm.pod_id = $1 and pm.status = 'in'`,
-        [podId],
-      )
-    ).map((r) => r.nexconn_id);
     const ticket = await buildTicket(db, podId);
     await ensureBot(nx);
     await nx.createGroup({
@@ -107,6 +101,12 @@ export async function ensurePodMaterialized(db: Db, nx: NexconnApi, podId: strin
       name: `${DESTINATIONS[ticket.destination].short} ${formatTime(ticket.departAt)}`.slice(0, 64),
       owner: botId(),
     });
+    const ids = (
+      await db.query<{ nexconn_id: string }>(
+        `select u.nexconn_id from hop.pod_members pm join hop.users u on u.id = pm.user_id where pm.pod_id = $1 and pm.status = 'in'`,
+        [podId],
+      )
+    ).map((r) => r.nexconn_id);
     await nx.joinGroup(channel_id, ids);
     if (!ticketId) {
       ticketId = await nx.sendGroupMessage({ fromUserId: botId(), channelId: channel_id, messageType: CARD_TICKET, content: ticket, needReadReceipt: true });
