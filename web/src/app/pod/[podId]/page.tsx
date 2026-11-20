@@ -30,8 +30,23 @@ function Pod({ podId, me }: { podId: string; me: Me }) {
   const [seenBy, setSeenBy] = useState<number | null>(null);
   const [meeraGone, setMeeraGone] = useState(false);
 
+  const retries = useRef(0);
   const load = useCallback(() => {
-    api.get<PodData>(`/api/pods/${podId}`).then(setPod).catch((e) => setFailed(e instanceof ApiError ? e.status : 0));
+    api
+      .get<PodData>(`/api/pods/${podId}`)
+      .then((d) => {
+        retries.current = 0;
+        setFailed(null);
+        setPod(d);
+      })
+      .catch((e) => {
+        const status = e instanceof ApiError ? e.status : 0;
+        // Right after a lock the pod may still be setting up: retry quietly before showing an error.
+        if (status !== 404 && retries.current < 4) {
+          retries.current += 1;
+          setTimeout(load, 1500);
+        } else setFailed(status);
+      });
   }, [podId]);
   useEffect(load, [load]);
 
