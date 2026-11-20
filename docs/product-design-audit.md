@@ -127,3 +127,59 @@ Static and public. It covers how it works (4 real steps), fares and splitting, w
 - Extra queries on `/home`: kept to two aggregate queries.
 - Nothing about Departures is personal: it shows counts only, and posting still goes through the existing flow.
 - No changes to auth, join/lock logic, Nexconn or the database schema.
+
+## 8. What was built (Pass B)
+
+| Area | Change |
+|---|---|
+| Shell | `AppShell`: bottom tab bar on phones, header tabs from 768px up, `aria-current`, a skip link, and the restyled connection banner. |
+| Trips `/home` | Prioritised: Next departure (ticket strip), Needs you, Upcoming, Last 7 days. Each row carries a status word. There are new-user empty, error-with-retry and loading states. Backed by `tripsOverview` (6 tests). |
+| Departures `/departures` | New. Day-grouped board with filters in the URL. It is counts-only and excludes demo rooms. Rows open your room or prefill a post into it, and are view-only for demo guests. Backed by `departures` (3 tests) and `GET /api/departures`. |
+| Account `/account` | New. Identity, a profile form with field-level errors and a Saved state (the phone can stay unchanged; 1 new test), help and policy links, sign out, and an honest data-deletion path. |
+| Help, Sign in | New public pages. Auth failures now return to `/signin` with specific copy (2 tests updated). |
+| Landing | Header with sign-in, actions above the fold on phones, how it works, what's shared when, FAQ, footer. |
+| Recovery | `not-found` and `error` pages. Privacy and Terms use the shared reading layout. |
+
+## 9. Verification (Pass C)
+
+- **Build and tests:** `tsc` clean, `next build` succeeds, and the Vitest suite has 161 tests passing.
+- **Live routes:** every route returns the expected status on hop-kgp.vercel.app. `/`, `/signin`, `/help`, `/home`, `/departures`, `/account`, `/stats`, `/privacy` and `/terms` return 200. `/nope` returns 404, and `/api/departures` returns 401 when signed out.
+- **Viewports and themes:** checked at 375 (light and dark), 430, 768 and 1280.
+- **Journeys exercised in the browser (local, against the production database and Nexconn, as a demo guest):**
+  - Demo start, then Trips shows "Needs you: 1 plan is open", then the room, I'm in, Lock, and the trip page. Trips then shows "Next departure" with ₹934 and 3 travelling.
+  - Departures: the `?d=CCU` filter works, `?d=SRC&dir=back` shows the filtered-empty state with Clear filters, and the demo notice appears.
+  - Account: an invalid phone shows a field error with `aria-invalid`. A valid save shows "Saved" and the masked number updates.
+  - Sign in with `?notkgp=1` shows the wrong-account copy. An unknown URL shows the branded 404.
+- **Keyboard:** the Tab order on Trips is brand, then Post a trip, then the next-departure card, with a visible 2px focus ring. A skip link has been added.
+- **Not verified in this pass:**
+  - Real KGP Google sign-in on a phone after these changes. Only the callback redirect target changed, and it is covered by tests.
+  - Lighthouse and Core Web Vitals were not measured.
+  - Contrast was not measured with a tool.
+
+## 10. Punch list (Pass D)
+
+| Priority | Item | Status |
+|---|---|---|
+| P1 | Landing call to action below the fold on phones | Fixed |
+| P1 | Departures time column cramped; scrollbar lines under the filters | Fixed |
+| P2 | Footer links under 44px | Fixed |
+| P2 | Desktop hero headline wrapping to 5 lines | Fixed |
+| P2 | Off-theme amber connection banner | Fixed |
+| P2 | Demo guests couldn't see the profile form | Fixed |
+| P2 | No account deletion in the product (handled by email, explained honestly) | Open: needs a backend decision |
+| P3 | The public peek page `/p/[id]` still uses its older header-less layout | Open |
+| P3 | No in-app notifications (web has no push); "Needs you" covers actionable items | By design |
+
+## 11. Score (Pass E)
+
+| Dimension | Weight | Rating | Points | Evidence |
+|---|---:|---:|---:|---|
+| Product understanding and IA | 15 | 5 | 15 | Three destinations map to the three jobs (my trips, find who's going, me). Create is a page action, not a tab. Focused views have no tabs. |
+| End-to-end task completeness | 15 | 5 | 15 | The post → room → join → lock → trip → Trips hero journey and the profile edit were exercised live. Leave, re-split and the captain were verified earlier on production. |
+| Depth of each major module | 15 | 4 | 12 | Each tab has its own structure, data, actions and states. Account lacks in-app deletion, and Departures is read-only for demo guests by design. |
+| Visual design quality | 15 | 4 | 12 | Coherent carriage theme. The board is a table on desktop and rows on phones, and hairline row lists replace stacked cards. Not yet reviewed by a human designer. |
+| Responsive behaviour | 10 | 5 | 10 | Checked at 375, 430, 768 and 1280, in light and dark. Navigation moves from the bottom bar to the header. Filters scroll on phones and wrap on desktop. |
+| States and recovery | 10 | 5 | 10 | Skeletons, new-user and filtered empty states, retry on error, offline and blocked banners, 404, error boundary, wrong-account and failed-return sign-in states, and a Saved state. |
+| Accessibility | 10 | 4 | 8 | Landmarks, a skip link, labelled fields, `aria-invalid` and `aria-current`, status words next to colour, 44px targets, a visible focus ring. Contrast was not tool-checked and no screen-reader pass was done. |
+| Technical correctness and trust | 10 | 5 | 10 | No auth, join/lock or schema changes. The new APIs are rate limited and auth-checked. The board returns counts only and excludes demo rooms. 161 tests pass. |
+| **Total** | **100** | | **92** | No release gate fails. |
