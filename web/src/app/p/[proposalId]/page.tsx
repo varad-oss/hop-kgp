@@ -19,7 +19,7 @@ async function Peek({ params }: { params: Promise<{ proposalId: string }> }) {
       <div className="flex flex-col items-start gap-4 p-5">
         <h1 className="font-display text-4xl font-semibold">This trip isn’t available</h1>
         <p className="text-muted">It may have left or been cancelled. Post your own and others can join.</p>
-        <Link href="/new" className="grid min-h-12 place-items-center rounded-xl bg-signal px-6 font-bold text-on-signal">Post your trip</Link>
+        <Link href="/new" className="grid min-h-12 place-items-center brass shadow-sm rounded-full px-6 font-bold">Post your trip</Link>
       </div>
     );
   const next = `/new?d=${p.destination}&date=${p.date}&then=join:${proposalId}`;
@@ -27,7 +27,7 @@ async function Peek({ params }: { params: Promise<{ proposalId: string }> }) {
   return (
     <div className="flex flex-col gap-5 p-5">
       <p className="font-display text-2xl font-semibold">Hop</p>
-      <section className="rounded-2xl bg-ticket p-5 text-on-ticket shadow-md" aria-label="Plan summary">
+      <section className="lacquer lacquer-frame rounded-[22px] p-5 text-on-ticket shadow-md" aria-label="Plan summary">
         <p className="font-display text-5xl font-semibold leading-none num">{p.time}</p>
         <p className="mt-2 text-lg">{rest[rest.length - 1]}</p>
         <p className="mt-4 font-display text-3xl font-semibold num">{head}</p>

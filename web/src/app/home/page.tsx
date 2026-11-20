@@ -25,7 +25,7 @@ function Trips() {
   if (!trips) return <Spinner label="Loading your trips" />;
   if (trips.length === 0)
     return (
-      <EmptyState title="No trips yet" action={<Link href="/new" className="grid min-h-12 place-items-center rounded-xl bg-signal px-6 font-bold text-on-signal">Post your trip</Link>}>
+      <EmptyState title="No trips yet" action={<Link href="/new" className="grid min-h-12 place-items-center brass shadow-sm rounded-full px-6 font-bold">Post your trip</Link>}>
         Tell Hop where and when you’re headed and you’ll land in the room with everyone going your way.
       </EmptyState>
     );
@@ -46,7 +46,7 @@ function Trips() {
         </li>
       ))}
       <li>
-        <Link href="/new" className="grid min-h-12 place-items-center rounded-xl bg-signal font-bold text-on-signal">
+        <Link href="/new" className="grid min-h-12 place-items-center brass shadow-sm rounded-full font-bold">
           Post another trip
         </Link>
       </li>

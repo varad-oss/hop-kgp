@@ -29,8 +29,11 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-0 py-8">
       <header className="px-5">
-        <p className="font-display text-2xl font-semibold">Hop</p>
-        <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.02]">Going home? Split the ride with KGP.</h1>
+        <p className="flex items-center gap-2 font-display text-2xl font-semibold italic">
+          <span aria-hidden className="brass inline-block h-2.5 w-2.5 rounded-full" />
+          Hop
+        </p>
+        <h1 className="mt-4 font-display text-[44px] font-medium leading-[1.05]">Going home? Split the ride with KGP.</h1>
         <p className="mt-3 max-w-[34ch] text-lg text-muted">
           Say where you’re headed. Join the room for that day, agree a plan in chat, lock it, and the fare splits itself.
         </p>

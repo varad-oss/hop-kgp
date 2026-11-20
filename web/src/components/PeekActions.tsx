@@ -11,7 +11,7 @@ export function PeekActions({ next }: { next: string }) {
   useEffect(markLinkOpen, []);
   if (status === 'ready')
     return (
-      <Link href={next} className="grid min-h-12 place-items-center rounded-xl bg-signal px-6 text-base font-bold text-on-signal">
+      <Link href={next} className="grid min-h-12 place-items-center brass shadow-sm rounded-full px-6 text-base font-bold">
         Join this plan
       </Link>
     );

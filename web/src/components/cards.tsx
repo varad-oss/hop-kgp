@@ -17,7 +17,7 @@ export function SeatDots({ filled, total }: { filled: number; total: number }) {
 }
 
 export function DemoTag() {
-  return <span className="rounded-md bg-signal px-1.5 py-0.5 text-xs font-bold text-on-signal">Demo</span>;
+  return <span className="brass rounded-full px-2 py-0.5 text-xs font-bold">Demo</span>;
 }
 
 export function IntentCard({ intent, mine }: { intent: HopIntent; mine?: boolean }) {
@@ -39,7 +39,7 @@ export function IntentCard({ intent, mine }: { intent: HopIntent; mine?: boolean
   );
 }
 
-const FIT_STYLE = { fits: 'bg-go text-on-go', tight: 'bg-signal text-on-signal', needs_suv: 'bg-stop text-bg', too_many: 'bg-stop text-bg' } as const;
+const FIT_STYLE = { fits: 'bg-go text-on-go', tight: 'brass', needs_suv: 'bg-stop text-bg', too_many: 'bg-stop text-bg' } as const;
 
 export type ProposalActions = {
   onJoin: () => void;
@@ -63,7 +63,7 @@ export function ProposalCard({ proposal, meta, me, ...a }: { proposal: HopPropos
 
   return (
     <article
-      className={`mx-3 rounded-2xl border bg-surface p-4 shadow-sm ${locked ? 'border-go' : 'border-line'} ${status === 'cancelled' ? 'opacity-60' : ''}`}
+      className={`mx-3 rounded-[22px] border bg-surface p-4 shadow-sm ${locked ? 'border-go' : 'border-line'} ${status === 'cancelled' ? 'opacity-60' : ''}`}
       aria-label={`Plan: ${now.join(' ')} from ${proposal.meetingPoint}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -77,9 +77,9 @@ export function ProposalCard({ proposal, meta, me, ...a }: { proposal: HopPropos
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          {locked ? <span className="rounded-md bg-go px-2 py-0.5 text-sm font-bold text-on-go">Locked</span> : null}
+          {locked ? <span className="rounded-full bg-go px-2.5 py-0.5 text-sm font-bold text-on-go">Locked</span> : null}
           {inCount > 0 && !locked ? (
-            <span className={`rounded-md px-2 py-0.5 text-sm font-bold ${FIT_STYLE[fit.kind]}`} title={`${bags} bags in this plan`}>
+            <span className={`rounded-full px-2.5 py-0.5 text-sm font-bold ${FIT_STYLE[fit.kind]}`} title={`${bags} bags in this plan`}>
               {fit.label}
             </span>
           ) : null}
@@ -155,7 +155,7 @@ export function TicketCard({ ticket, me, onCalendar }: { ticket: HopTicket; me?:
   const date = formatTripDate(ticket.departAt.slice(0, 10));
   const reason = ticket.reason ? `${ticket.reason.name} ${ticket.reason.kind === 'joined' ? 'joined' : 'left'}: fare re-split` : null;
   return (
-    <section aria-label="Trip ticket" className="relative mx-3 overflow-hidden rounded-2xl bg-ticket text-on-ticket shadow-md">
+    <section aria-label="Trip ticket" className="lacquer lacquer-frame relative mx-3 overflow-hidden rounded-[22px] text-on-ticket shadow-md">
       <div className="flex">
         <div className="min-w-0 flex-1 p-4">
           <p className="text-sm text-on-ticket/75">{ticket.direction === 'back' ? 'Back to campus from' : 'From campus to'}</p>
@@ -170,7 +170,7 @@ export function TicketCard({ ticket, me, onCalendar }: { ticket: HopTicket; me?:
             {VEHICLES[ticket.vehicle].label} for {ticket.seats}
           </p>
         </div>
-        <div className="relative w-[7.25rem] shrink-0 bg-signal p-3 text-on-signal">
+        <div className="brass relative w-[7.25rem] shrink-0 p-3">
           <span aria-hidden className="perf absolute inset-y-3 -left-px w-[2px]" />
           <p className="text-sm font-bold">You pay</p>
           <p className="font-display text-4xl font-semibold leading-none num">{formatINR(ticket.each)}</p>
@@ -179,7 +179,7 @@ export function TicketCard({ ticket, me, onCalendar }: { ticket: HopTicket; me?:
         </div>
         <span aria-hidden className="absolute -top-2.5 right-[calc(7.25rem-10px)] h-5 w-5 rounded-full bg-bg" />
       </div>
-      {reason ? <p className="bg-signal/90 px-4 py-1.5 text-sm font-bold text-on-signal">{reason}</p> : null}
+      {reason ? <p className="brass px-4 py-1.5 text-sm font-bold">{reason}</p> : null}
       <ul className="divide-y divide-ticket-line border-t border-ticket-line">
         {ticket.members.map((m) => (
           <li key={m.nexconnId} className="flex min-h-12 items-center justify-between gap-3 px-4 py-2">
@@ -200,7 +200,7 @@ export function TicketCard({ ticket, me, onCalendar }: { ticket: HopTicket; me?:
       </ul>
       {onCalendar ? (
         <div className="border-t border-ticket-line p-3">
-          <button onClick={onCalendar} className="min-h-11 w-full rounded-xl border border-ticket-line font-bold hover:bg-on-ticket/10">
+          <button onClick={onCalendar} className="min-h-11 w-full rounded-full border border-ticket-line font-bold hover:bg-on-ticket/10">
             Add to calendar
           </button>
         </div>

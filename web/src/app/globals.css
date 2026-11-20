@@ -1,39 +1,48 @@
 @import "tailwindcss";
 
-/* Hop — station-signage palette: platform navy, signal yellow, go green. */
+/* Hop — "first-class carriage": lacquered bottle green, brushed brass, stone paper.
+   Token names are kept from v1 (signal = brass accent, go = confirm, ticket = lacquer). */
 :root {
-  --bg: #eef2f7;
-  --surface: #ffffff;
-  --surface-2: #e4eaf3;
-  --ink: #14213d;
-  --muted: #4a5a77;
-  --line: #cfd8e6;
-  --signal: #f2b90f;
-  --on-signal: #14213d;
-  --go: #17744c;
-  --on-go: #ffffff;
-  --stop: #b3261e;
-  --ticket: #14213d;
-  --on-ticket: #f4f7fc;
-  --ticket-line: #3b4d75;
-  --focus: #1f5fd1;
+  --bg: #eceee9;
+  --surface: #fbfbf8;
+  --surface-2: #e2e6df;
+  --ink: #0f1f1a;
+  --muted: #4c5c55;
+  --line: #d2d8cf;
+  --signal: #c9a55e;
+  --on-signal: #14120b;
+  --go: #1b4a3a;
+  --on-go: #f5f0e2;
+  --stop: #a3392d;
+  --ticket: #12352a;
+  --on-ticket: #f4efe1;
+  --ticket-line: #2b5a49;
+  --brass-hi: #e2c88e;
+  --brass-lo: #b08c45;
+  --focus: #1b6b52;
+  --lift: 0 1px 0 rgb(15 31 26 / 0.04), 0 10px 30px -14px rgb(15 31 26 / 0.22);
+  --lift-strong: 0 2px 0 rgb(15 31 26 / 0.05), 0 22px 44px -18px rgb(10 30 22 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1220;
-    --surface: #131d33;
-    --surface-2: #1b2842;
-    --ink: #e9eef8;
-    --muted: #9fadc7;
-    --line: #26354f;
-    --go: #4cc38a;
-    --on-go: #06251a;
-    --stop: #ff8a80;
-    --ticket: #1d3160;
-    --on-ticket: #f4f7fc;
-    --ticket-line: #4a63a0;
-    --focus: #8ab4ff;
+    --bg: #07100d;
+    --surface: #0e1a15;
+    --surface-2: #15261f;
+    --ink: #ece7d9;
+    --muted: #a3aea7;
+    --line: #20372d;
+    --signal: #d3b26c;
+    --on-signal: #14120b;
+    --go: #86c6a5;
+    --on-go: #07201a;
+    --stop: #f0897c;
+    --ticket: #11392c;
+    --on-ticket: #f4efe1;
+    --ticket-line: #2c5e4c;
+    --focus: #d3b26c;
+    --lift: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -16px rgb(0 0 0 / 0.8);
+    --lift-strong: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 24px 48px -20px rgb(0 0 0 / 0.9);
   }
 }
 
@@ -53,7 +62,10 @@
   --color-on-ticket: var(--on-ticket);
   --color-ticket-line: var(--ticket-line);
   --font-sans: var(--font-body), system-ui, sans-serif;
-  --font-display: var(--font-display), "Arial Narrow", sans-serif;
+  --font-display: var(--font-display), "Didot", Georgia, serif;
+  --font-weight-bold: 650;
+  --shadow-sm: var(--lift);
+  --shadow-md: var(--lift-strong);
 }
 
 html {
@@ -69,18 +81,35 @@ body {
   background: var(--bg);
   color: var(--ink);
   min-height: 100dvh;
+  font-feature-settings: "ss01", "cv11";
 }
 
 .font-display {
-  font-family: var(--font-display), "Arial Narrow", sans-serif;
-  letter-spacing: 0.005em;
+  font-family: var(--font-display), "Didot", Georgia, serif;
+  letter-spacing: -0.012em;
+  font-optical-sizing: auto;
 }
 .num {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Brushed-brass foil, used for the ticket stub and primary "I'm in" action. */
+.brass {
+  background: linear-gradient(135deg, var(--brass-hi) 0%, var(--signal) 45%, var(--brass-lo) 100%);
+  color: var(--on-signal);
+}
+/* Hairline brass frame inside the lacquered ticket */
+.lacquer {
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgb(255 255 255 / 0.07), transparent 60%),
+    var(--ticket);
+}
+.lacquer-frame {
+  box-shadow: inset 0 0 0 1px rgb(226 200 142 / 0.28);
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -92,11 +121,11 @@ body {
 }
 
 @keyframes pop {
-  0% { transform: scale(0.96); }
-  60% { transform: scale(1.02); }
+  0% { transform: scale(0.97); }
+  60% { transform: scale(1.01); }
   100% { transform: scale(1); }
 }
-.pop { animation: pop 220ms ease-out; }
+.pop { animation: pop 260ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
@@ -106,7 +135,7 @@ body {
 
 /* Perforation between a ticket's stub and body */
 .perf {
-  background-image: linear-gradient(to bottom, var(--ticket-line) 55%, transparent 0);
-  background-size: 2px 10px;
+  background-image: linear-gradient(to bottom, rgb(20 18 11 / 0.35) 50%, transparent 0);
+  background-size: 1.5px 8px;
   background-repeat: repeat-y;
 }

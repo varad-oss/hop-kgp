@@ -5,7 +5,7 @@ type Variant = 'primary' | 'signal' | 'go' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-ink text-bg hover:opacity-90',
-  signal: 'bg-signal text-on-signal hover:brightness-95',
+  signal: 'brass shadow-sm hover:brightness-105',
   go: 'bg-go text-on-go hover:brightness-110',
   ghost: 'border border-line bg-surface text-ink hover:bg-surface-2',
   danger: 'border border-stop text-stop bg-surface hover:bg-surface-2',
@@ -22,7 +22,7 @@ export function Button({
     <button
       {...p}
       disabled={p.disabled || busy}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-[15px] font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-bold tracking-[0.01em] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]} ${className}`}
     >
       {busy ? <span className="pulse">…</span> : children}
     </button>
@@ -47,7 +47,7 @@ export function Chip({ active, children, ...p }: ButtonHTMLAttributes<HTMLButton
 export function Spinner({ label = 'Loading' }: { label?: string }) {
   return (
     <div role="status" className="flex items-center justify-center gap-2 p-8 text-muted">
-      <span className="pulse inline-block h-3 w-3 rounded-full bg-signal" />
+      <span className="pulse brass inline-block h-3 w-3 rounded-full" />
       <span>{label}…</span>
     </div>
   );

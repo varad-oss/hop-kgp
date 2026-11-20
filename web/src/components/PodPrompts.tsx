@@ -49,7 +49,7 @@ export function ReturnTripPrompt({ destination }: { destination: string }) {
   return (
     <section className="mx-3 flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4">
       <p className="font-bold">Coming back 1–3 Jan?</p>
-      <a href={`/new?dir=back&d=${destination}&date=2027-01-02`} className="grid min-h-11 place-items-center rounded-xl bg-signal px-4 font-bold text-on-signal">
+      <a href={`/new?dir=back&d=${destination}&date=2027-01-02`} className="grid min-h-11 place-items-center brass shadow-sm rounded-full px-4 font-bold">
         Post your return trip
       </a>
     </section>

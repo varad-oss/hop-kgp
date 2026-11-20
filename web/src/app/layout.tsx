@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible, Barlow_Condensed } from "next/font/google";
+import { Bodoni_Moda, Manrope } from "next/font/google";
 import "./globals.css";
 
-const display = Barlow_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["500", "600", "700"] });
-const body = Atkinson_Hyperlegible({ variable: "--font-body", subsets: ["latin"], weight: ["400", "700"] });
+const display = Bodoni_Moda({ variable: "--font-display", subsets: ["latin"], weight: "variable", axes: ["opsz"] });
+const body = Manrope({ variable: "--font-body", subsets: ["latin"], weight: "variable" });
 
 export const metadata: Metadata = {
   title: { default: "Hop — split the ride home", template: "%s · Hop" },
@@ -16,8 +16,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef2f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+    { media: "(prefers-color-scheme: light)", color: "#eceee9" },
+    { media: "(prefers-color-scheme: dark)", color: "#07100d" },
   ],
 };
 

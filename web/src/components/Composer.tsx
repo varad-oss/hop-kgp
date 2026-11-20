@@ -44,7 +44,7 @@ export function Composer({ onSend, onPropose, disabled, guardPhones, chips }: { 
         </div>
       )}
       {onPropose && (
-        <Button variant="signal" onClick={onPropose} className="mb-2 w-full">
+        <Button variant="ghost" onClick={onPropose} className="mb-2 w-full">
           Propose a plan
         </Button>
       )}
@@ -59,7 +59,7 @@ export function Composer({ onSend, onPropose, disabled, guardPhones, chips }: { 
       >
         <input
           aria-label="Message"
-          className="min-h-11 flex-1 rounded-xl border border-line bg-surface px-3 text-[16px]"
+          className="min-h-11 flex-1 rounded-full border border-line bg-surface px-4 text-[16px]"
           placeholder="Message the room"
           maxLength={500}
           value={text}
