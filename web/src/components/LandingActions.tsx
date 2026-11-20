@@ -43,9 +43,9 @@ export function LandingActions() {
   return (
     <div className="flex flex-col gap-3">
       {notKgp && (
-        <ErrorNote>That isn’t an @kgpian.iitkgp.ac.in account. Hop is for KGP students. Try the demo instead.</ErrorNote>
+        <ErrorNote>That Google account isn’t an @kgpian.iitkgp.ac.in address, so you weren’t signed in. Choose your KGP account on the next screen, or try the demo.</ErrorNote>
       )}
-      {params.get('error') === 'auth' && <ErrorNote>Sign-in did not finish. Try again.</ErrorNote>}
+      {params.get('error') === 'auth' && <ErrorNote>Google sign-in didn’t finish, perhaps because it was cancelled or the link expired. Tap the button to start again.</ErrorNote>}
       <Button variant="signal" busy={busy === 'google'} onClick={google} className="min-h-12 text-base">
         Sign in with KGP Google
       </Button>

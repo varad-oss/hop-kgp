@@ -57,12 +57,17 @@ export async function ensureUser(
   return rows[0];
 }
 
-export async function updateProfile(db: Db, userId: string, p: { hall: string; phone: string }): Promise<UserRow> {
+/** Saves hall and phone. Without a phone, the saved one is kept; a first save must include one. */
+export async function updateProfile(db: Db, userId: string, p: { hall: string; phone?: string }): Promise<UserRow> {
   const hall = p.hall.trim();
   if (hall.length < 1 || hall.length > 40) throw new HttpError(400, 'bad_hall');
-  const phone = normalizeIndianMobile(p.phone);
-  if (!phone) throw new HttpError(400, 'bad_phone');
-  const rows = await db.query<UserRow>('update hop.users set hall = $2, phone = $3 where id = $1 returning *', [userId, hall, phone]);
+  const phone = p.phone === undefined ? undefined : normalizeIndianMobile(p.phone);
+  if (phone === null) throw new HttpError(400, 'bad_phone');
+  const rows = await db.query<UserRow>(
+    'update hop.users set hall = $2, phone = coalesce($3, phone) where id = $1 and coalesce($3, phone) is not null returning *',
+    [userId, hall, phone ?? null],
+  );
+  if (!rows[0] && phone === undefined) throw new HttpError(400, 'bad_phone');
   if (!rows[0]) throw new HttpError(404, 'not_found');
   return rows[0];
 }
@@ -76,16 +81,16 @@ export async function handleCallback(d: {
   exchange: (code: string) => Promise<SessionUser>;
   signOut: () => Promise<void>;
 }): Promise<string> {
-  if (!d.code) return '/?error=auth';
+  if (!d.code) return '/signin?error=auth';
   let s: SessionUser;
   try {
     s = await d.exchange(d.code);
   } catch {
-    return '/?error=auth';
+    return '/signin?error=auth';
   }
   if (!s.isAnonymous && !isKgpianEmail(s.email)) {
     await d.signOut();
-    return '/?notkgp=1';
+    return '/signin?notkgp=1';
   }
   await ensureUser(d.db, { authId: s.id, email: s.email ?? null, name: s.name, isDemo: s.isAnonymous });
   return safeNext(d.next);

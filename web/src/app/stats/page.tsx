@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getDb } from '@/server/db';
 import { computeStats } from '@/server/stats';
 import { formatINR } from '@/domain/fare';
+import { PublicFooter, PublicHeader } from '@/components/PublicChrome';
 
 export const metadata = { title: 'Traction', description: 'Live numbers for Hop at IIT Kharagpur. Demo and test accounts excluded.' };
 
@@ -19,7 +20,7 @@ async function Stats() {
   const max = Math.max(1, ...s.daily.flatMap((d) => [d.signups, d.locks]));
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile value={String(s.students)} label="KGPians signed up" />
         <Tile value={String(s.tripsLocked)} label="Trips locked" />
         <Tile value={formatINR(s.rupeesSaved)} label="Saved vs riding alone" />
@@ -61,11 +62,16 @@ async function Stats() {
 
 export default function StatsPage() {
   return (
-    <main className="mx-auto w-full max-w-md flex-1 p-5">
-      <h1 className="mb-5 font-display text-4xl font-semibold">Hop at IIT Kharagpur</h1>
-      <Suspense fallback={<p className="text-muted">Loading the numbers…</p>}>
-        <Stats />
-      </Suspense>
-    </main>
+    <div className="flex min-h-dvh flex-col">
+      <PublicHeader />
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-8 md:px-6">
+        <h1 className="font-display text-[40px] font-semibold leading-tight">Hop at IIT Kharagpur</h1>
+        <p className="mb-6 mt-2 text-lg text-muted">Live numbers from real students. Demo and test accounts are left out.</p>
+        <Suspense fallback={<p className="text-muted">Loading the numbers…</p>}>
+          <Stats />
+        </Suspense>
+      </main>
+      <PublicFooter />
+    </div>
   );
 }

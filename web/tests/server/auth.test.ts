@@ -82,16 +82,25 @@ describe('users', () => {
     await expect(updateProfile(db, u.id, { hall: 'Azad', phone: '12345' })).rejects.toMatchObject({ status: 400, error: 'bad_phone' });
     await expect(updateProfile(db, u.id, { hall: '', phone: '9876543210' })).rejects.toMatchObject({ status: 400, error: 'bad_hall' });
   });
+
+  test('updateProfile keeps the saved phone when none is sent, but needs one the first time', async () => {
+    const db = await createTestDb();
+    const u = await ensureUser(db, { authId: UUID, email: 'a@kgpian.iitkgp.ac.in', name: 'Riya', isDemo: false });
+    await expect(updateProfile(db, u.id, { hall: 'Azad' })).rejects.toMatchObject({ status: 400, error: 'bad_phone' });
+    await updateProfile(db, u.id, { hall: 'Azad', phone: '9876543210' });
+    const upd = await updateProfile(db, u.id, { hall: 'Nehru' });
+    expect(upd).toMatchObject({ hall: 'Nehru', phone: '9876543210' });
+  });
 });
 
 describe('handleCallback', () => {
   const sess = (email: string | undefined, anon = false) => ({ id: UUID, email, name: 'Riya', isAnonymous: anon });
 
-  test('non-kgpian Google account is signed out and sent to /?notkgp=1', async () => {
+  test('non-kgpian Google account is signed out and sent to /signin?notkgp=1', async () => {
     const db = await createTestDb();
     const signOut = vi.fn(async () => {});
     const out = await handleCallback({ db, code: 'c', next: '/l/abc', exchange: async () => sess('x@gmail.com'), signOut });
-    expect(out).toBe('/?notkgp=1');
+    expect(out).toBe('/signin?notkgp=1');
     expect(signOut).toHaveBeenCalledOnce();
     expect(await db.query('select 1 from hop.users')).toHaveLength(0);
   });
@@ -105,10 +114,10 @@ describe('handleCallback', () => {
     expect(await db.query('select 1 from hop.users')).toHaveLength(1);
   });
 
-  test('missing code or failed exchange goes to /?error=auth', async () => {
+  test('missing code or failed exchange goes to /signin?error=auth', async () => {
     const db = await createTestDb();
     const signOut = vi.fn(async () => {});
-    expect(await handleCallback({ db, code: null, next: null, exchange: async () => sess('r@kgpian.iitkgp.ac.in'), signOut })).toBe('/?error=auth');
-    expect(await handleCallback({ db, code: 'c', next: null, exchange: async () => { throw new Error('bad'); }, signOut })).toBe('/?error=auth');
+    expect(await handleCallback({ db, code: null, next: null, exchange: async () => sess('r@kgpian.iitkgp.ac.in'), signOut })).toBe('/signin?error=auth');
+    expect(await handleCallback({ db, code: 'c', next: null, exchange: async () => { throw new Error('bad'); }, signOut })).toBe('/signin?error=auth');
   });
 });

@@ -10,26 +10,21 @@ export function AuthGate({ children }: { children: (me: Me, refresh: () => Promi
   if (status === 'error')
     return (
       <EmptyState title="Can’t reach Hop" action={<Button onClick={() => location.reload()}>Try again</Button>}>
-        Check your connection and try again.
+        Your phone couldn’t reach the Hop server. Check your connection, or switch between WiFi and mobile data, then try again.
       </EmptyState>
     );
   if (status === 'anon' || !me)
     return (
-      <EmptyState
-        title="Sign in to continue"
-        action={
-          <div className="flex w-full flex-col gap-2">
-            <Button variant="signal" onClick={() => void signInWithKgpGoogle(location.pathname + location.search)}>
-              Sign in with KGP Google
-            </Button>
-            <a href="/" className="grid min-h-11 place-items-center text-sm font-bold underline">
-              Or try the demo
-            </a>
-          </div>
-        }
-      >
-        Hop is for IIT Kharagpur students.
-      </EmptyState>
+      <div className="mx-auto flex max-w-sm flex-col gap-3 py-8">
+        <h2 className="font-display text-[28px] font-semibold leading-tight">Sign in to see this</h2>
+        <p className="text-muted">Hop is for IIT Kharagpur students. Sign in with your @kgpian.iitkgp.ac.in Google account and you’ll come straight back here.</p>
+        <Button variant="signal" className="min-h-12" onClick={() => void signInWithKgpGoogle(location.pathname + location.search)}>
+          Sign in with KGP Google
+        </Button>
+        <a href="/" className="grid min-h-11 place-items-center rounded-full border border-line bg-surface font-bold">
+          Not at KGP? Try the demo
+        </a>
+      </div>
     );
   return <>{children(me, refresh)}</>;
 }

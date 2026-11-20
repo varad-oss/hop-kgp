@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, ApiError } from './api';
 
-export type Me = { id: string; nexconnId: string; name: string; hall: string | null; hasPhone: boolean; isDemo: boolean };
+export type Me = { id: string; nexconnId: string; name: string; hall: string | null; hasPhone: boolean; phoneLast4: string | null; email: string | null; isDemo: boolean };
 
 /** state: loading → ready (signed in) | anon (needs sign-in) | error */
 export function useMe() {
