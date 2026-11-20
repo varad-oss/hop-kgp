@@ -44,3 +44,4 @@ Still open from the review: confirm webhook in Console; real iPhone/Android + KG
   - Finding: server-sent stream messages are stored but not pushed live to web clients, so the requester's client fetches the message by id and pulls deltas with `requestStreamMessage()`. Other members see it on their next load.
   - Needs `GEMINI_API_KEY` in Vercel to use the model.
 - Webhook: no `pre_messaging` calls seen in logs after a lobby message at 13:11; Console config needs a recheck.
+- 14:47 IST: webhook verified live. Nexconn calls `/api/webhooks/nexconn` (200, signature OK). With the client guard disabled locally, a lobby message "call me on 98765 43210" was blocked (not stored, gone on reload) while a control message persisted. Gemini captain verified live at 14:31.
